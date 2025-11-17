@@ -5,54 +5,54 @@ import { Column, Entity, Index } from "typeorm";
 @Entity("eventos_usuarios", { schema: "public" })
 export class EventosUsuarios {
   @Column("uuid", { primary: true, name: "id_cliente" })
-  idCliente: string;
+  idCliente!: string; // <- obligatorio
 
   @Column("character varying", { name: "email", unique: true, length: 150 })
-  email: string;
+  email!: string; // <- obligatorio
 
   @Column("character varying", { name: "nombre", nullable: true, length: 100 })
-  nombre: string | null;
+  nombre!: string | null;
 
   @Column("character varying", {
     name: "apellido",
     nullable: true,
     length: 100,
   })
-  apellido: string | null;
+  apellido!: string | null;
 
   @Column("date", { name: "fecha_nacimiento", nullable: true })
-  fechaNacimiento: string | null;
+  fechaNacimiento!: string | null;
 
   @Column("character varying", { name: "genero", nullable: true, length: 20 })
-  genero: string | null;
+  genero!: string | null;
 
   @Column("character varying", {
     name: "direccion",
     nullable: true,
     length: 250,
   })
-  direccion: string | null;
+  direccion!: string | null;
 
   @Column("character varying", {
     name: "foto_url",
     nullable: true,
     length: 500,
   })
-  fotoUrl: string | null;
+  fotoUrl!: string | null;
 
   @Column("character varying", {
     name: "clave_hash",
     nullable: true,
     length: 500,
   })
-  claveHash: string | null;
+  claveHash!: string | null;
 
   @Column("character varying", {
     name: "google_id",
     nullable: true,
     length: 100,
   })
-  googleId: string | null;
+  googleId!: string | null;
 
   @Column("character varying", {
     name: "tipo_usuario",
@@ -60,19 +60,19 @@ export class EventosUsuarios {
     length: 20,
     default: () => "'NORMAL'",
   })
-  tipoUsuario: string | null;
+  tipoUsuario!: string | null;
 
   @Column("timestamp without time zone", {
     name: "fecha_creacion",
     nullable: true,
     default: () => "CURRENT_TIMESTAMP",
   })
-  fechaCreacion: Date | null;
+  fechaCreacion!: Date | null;
 
   @Column("timestamp without time zone", {
     name: "fecha_actualizacion",
     nullable: true,
     default: () => "CURRENT_TIMESTAMP",
   })
-  fechaActualizacion: Date | null;
+  fechaActualizacion!: Date | null;
 }
