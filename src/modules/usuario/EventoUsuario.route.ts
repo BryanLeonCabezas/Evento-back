@@ -6,6 +6,6 @@ import { asyncWrapper } from "../../common/utils/AsyncWrapper.js";
 
 const router = Router();
 
-router.post("/",validateSchema(crearUsuarioSchema), asyncWrapper(crearUsuarioHandler));
+router.post("/register",validateSchema(crearUsuarioSchema), asyncWrapper(crearUsuarioHandler));
 
 export default router;

@@ -11,5 +11,6 @@ export class CrearUsuarioDto {
     claveHash?: string;
     googleId?: string;
     tipoUsuario?: TipoUsuarioEnum;
+    idToken?: string;
   }
   

@@ -13,7 +13,9 @@
   "description": "",
   "dependencies": {
     "base-64": "^1.0.0",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
+    "google-auth-library": "^10.5.0",
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
@@ -21,6 +23,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
     "ts-node-dev": "^2.0.0",

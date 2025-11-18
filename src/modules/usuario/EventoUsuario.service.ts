@@ -1,6 +1,7 @@
 import { TipoUsuarioEnum } from "../../common/enums/TipoUsuario.enum.js";
 import { AppError } from "../../common/utils/App.error.js";
 import { hashPassword } from "../../common/utils/crypto.util.js";
+import { validarIdTokenGoogle } from "../../common/utils/validarIdToken.util.js";
 import { CrearUsuarioDto } from "./dtos/CrearUsuario.dto.js";
 import { eventoUsuarioRepository } from "./EventoUsuario.repository.js";
 
@@ -15,18 +16,17 @@ export const createEventoUsuario = async (eventoUsuario: CrearUsuarioDto) => {
   let usuarioEvento;
 
   if (eventoUsuario.tipoUsuario === TipoUsuarioEnum.GOOGLE) {
+    const usuarioGoogle = await validarIdTokenGoogle(eventoUsuario.idToken!);
+
     usuarioEvento = repo.create({
-      ...eventoUsuario,
+      ...usuarioGoogle,
       idCliente: crypto.randomUUID(),
-      // No hay claveHash para Google
     });
     await repo.save(usuarioEvento);
 
     return {
       message: "Usuario creado con éxito",
       tipoUsuario: TipoUsuarioEnum.GOOGLE,
-      email: usuarioEvento.email,
-      nombre: usuarioEvento.nombre,
     };
   } else {
     usuarioEvento = repo.create({

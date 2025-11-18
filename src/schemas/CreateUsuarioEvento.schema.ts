@@ -10,7 +10,6 @@ const commonFields = {
 
   nombre: z.string().max(100, "El nombre no puede superar 100 caracteres"),
   apellido: z.string().max(100, "El apellido no puede superar 100 caracteres"),
-  
 };
 
 const normalUserSchema = z.object({
@@ -31,11 +30,7 @@ const normalUserSchema = z.object({
 });
 
 const googleUserSchema = z.object({
-  ...commonFields,
-
-  fotoUrl: z.string().url("La foto debe ser una URL válida").optional(),
-
-  googleId: z.string().optional(),
+  idToken: z.string(),
   tipoUsuario: z.literal(TipoUsuarioEnum.GOOGLE),
 });
 
