@@ -1,5 +1,5 @@
 import { AppDataSource } from "../../data-source.js";
-import { CrearUsuarioDto } from "./dtos/CrearUsuario.dto.js";
+import { CrearUsuarioDto } from "../auth/CrearUsuario.dto.js";
 import { EventosUsuarios } from "./EventoUsuario.entity.js";
 
 

@@ -27,10 +27,12 @@ const normalUserSchema = z.object({
 
   claveHash: z.string(),
   tipoUsuario: z.literal(TipoUsuarioEnum.NORMAL),
+  numeroCelular: z.string(),
 });
 
 const googleUserSchema = z.object({
   idToken: z.string(),
+  accessToken: z.string(),
   tipoUsuario: z.literal(TipoUsuarioEnum.GOOGLE),
 });
 
