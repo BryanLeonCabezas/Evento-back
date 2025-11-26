@@ -2,37 +2,37 @@ import { TipoUsuarioEnum } from "../../common/enums/TipoUsuario.enum.js";
 import { AppError } from "../../common/utils/App.error.js";
 import { hashPassword } from "../../common/utils/crypto.util.js";
 import { validarIdTokenGoogle } from "../../common/utils/validarIdToken.util.js";
-import { eventoUsuarioRepository } from "../usuario/EventoUsuario.repository.js";
+import { UsuarioRepository } from "../usuario/Usuario.repository.js";
 import { CrearUsuarioDto } from "./CrearUsuario.dto.js";
 import { CrearUsuarioGoogleDto } from "./dtos/CrearUsuarioGoogle.dto.js";
 import jwt from "jsonwebtoken";
 export class AuthService {
-  private repoUsuario = eventoUsuarioRepository;
+  private repoUsuario = UsuarioRepository;
 
-  async registerUserPassword(dto: CrearUsuarioDto) {
+  async registerUserPassword(dtoUsuario: CrearUsuarioDto) {
     let usuario;
 
-    const exist = await this.repo.findOneBy({ email: dto.email });
+    const exist = await this.repoUsuario.findOneBy({ email: dtoUsuario.email });
     if (exist) throw new AppError("El correo ya se encuentra registrado", 400);
 
-    usuario = this.repo.create({
-      ...dto,
+    usuario = this.repoUsuario.create({
+      ...dtoUsuario,
       idCliente: crypto.randomUUID(),
-      claveHash: hashPassword(dto.claveHash!),
+      claveHash: hashPassword(dtoUsuario.claveHash!),
       tipoUsuario: TipoUsuarioEnum.NORMAL,
     });
 
-    await this.repo.save(usuario);
+    await this.repoUsuario.save(usuario);
 
     return {
       message: "Usuario creado con éxito",
       tipoUsuario: usuario.tipoUsuario,
     };
   }
-  async authGoogle(dto: CrearUsuarioGoogleDto) {
+  async authGoogle(dtoUsuarioGoogle: CrearUsuarioGoogleDto) {
     const usuarioGoogle = await validarIdTokenGoogle(
-      dto.idToken!,
-      dto.accessToken!
+      dtoUsuarioGoogle.idToken!,
+      dtoUsuarioGoogle.accessToken!
     );
     //console.log(usuarioGoogle);
 
@@ -44,6 +44,8 @@ export class AuthService {
 
     if (!usuario) {
       isNewUser = true;
+
+      console.log("usuarioGoogle", usuarioGoogle.fechaNacimiento);
 
       usuario = this.repoUsuario.create({
         ...usuarioGoogle,
@@ -72,6 +74,7 @@ export class AuthService {
     return {
       message: isNewUser ? "Usuario creado con éxito" : "Login exitoso",
       usuario: {
+        idUsuario: usuario.idCliente,
         email: usuario.email,
         tipoUsuario: usuario.tipoUsuario,
         nombre: usuarioGoogle.nombre,

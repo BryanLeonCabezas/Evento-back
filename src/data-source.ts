@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { EventosUsuarios } from "./modules/usuario/EventoUsuario.entity.js";
+import { Usuarios } from "./modules/usuario/Usuario.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -9,7 +9,7 @@ export const AppDataSource = new DataSource({
   username: "postgres",
   password: "admin",
   database: "postgres",
-  synchronize: false,
+  synchronize: true,
   logging: false,
-  entities: [EventosUsuarios],
+  entities: [Usuarios],
 });

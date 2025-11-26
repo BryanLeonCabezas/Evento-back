@@ -14,10 +14,10 @@ const commonFields = {
 
 const normalUserSchema = z.object({
   ...commonFields,
-  fechaNacimiento: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe tener formato YYYY-MM-DD"),
-
+  fechaNacimiento: z.coerce.date({
+    required_error: "La fecha de nacimiento es requerida",
+    invalid_type_error: "Fecha inválida",
+  }),
   genero: z.nativeEnum(GeneroEnum),
 
   direccion: z

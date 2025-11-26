@@ -1,6 +1,6 @@
 // src/app.routes.ts
 import { Router } from "express";
-import usuarioRoutes from "./modules/usuario/EventoUsuario.route.js";
+import usuarioRoutes from "./modules/usuario/Usuario.route.js";
 import authRoutes from "./modules/auth/Auth.route.js";
 const router = Router();
 

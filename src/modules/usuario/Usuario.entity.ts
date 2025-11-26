@@ -1,9 +1,9 @@
 import { Column, Entity, Index } from "typeorm";
 
-@Index("eventos_usuarios_email_key", ["email"], { unique: true })
-@Index("eventos_usuarios_pkey", ["idCliente"], { unique: true })
-@Entity("eventos_usuarios", { schema: "public" })
-export class EventosUsuarios {
+@Index("usuarios_email_key", ["email"], { unique: true })
+@Index("usuarios_pkey", ["idCliente"], { unique: true })
+@Entity("usuarios", { schema: "public" })
+export class Usuarios {
   @Column("uuid", { primary: true, name: "id_cliente" })
   idCliente!: string;
 
@@ -21,7 +21,7 @@ export class EventosUsuarios {
   apellido?: string | null;
 
   @Column("date", { name: "fecha_nacimiento", nullable: true })
-  fechaNacimiento?: string | null;
+  fechaNacimiento?: Date | null;
 
   @Column("character varying", { name: "genero", nullable: true, length: 20 })
   genero?: string | null;

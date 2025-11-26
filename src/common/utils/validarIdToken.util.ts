@@ -6,6 +6,7 @@ import { TipoUsuarioEnum } from "../enums/TipoUsuario.enum.js";
 import { GoogleApis, google } from "googleapis";
 import { GeneroEnum } from "../enums/Genero.enum.js";
 import { UsuarioDto } from "../../modules/auth/dtos/usuario.dto.js";
+import { AppError } from "./App.error.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -20,10 +21,20 @@ export const validarIdTokenGoogle = async (
   idToken: string,
   accessToken: string
 ): Promise<UsuarioDto> => {
-  const ticket = await client.verifyIdToken({
-    idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
+  let ticket;
+  try {
+    ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+  } catch (error: any) {
+    throw new AppError(
+      "Token de Google inválido o expirado",
+      401,
+      error.message
+    );
+  }
+  console.log("ticket", ticket);
 
   const payload = ticket.getPayload();
   if (!payload) throw new Error("Token inválido");
@@ -37,11 +48,21 @@ export const validarIdTokenGoogle = async (
     version: "v1",
     auth: oauth2Client,
   });
-
-  const { data: person } = await peopleService.people.get({
-    resourceName: "people/me",
-    personFields: "genders,birthdays,addresses,phoneNumbers,organizations",
-  });
+  let person;
+  try {
+    const response = await peopleService.people.get({
+      resourceName: "people/me",
+      personFields: "genders,birthdays,addresses,phoneNumbers,organizations",
+    });
+    person = response.data;
+  } catch (error: any) {
+    throw new AppError(
+      "No se pudo obtener los datos del perfil de Google",
+      401,
+      "GOOGLE_OAUTH_ACCESS_DENIED",
+      error.response?.data ?? null
+    );
+  }
 
   const rawGender =
     person.genders?.find((g) => g.metadata?.primary)?.value || null;
@@ -53,11 +74,26 @@ export const validarIdTokenGoogle = async (
   const birthday =
     person.birthdays?.find((b) => b.date?.year) || person.birthdays?.[0];
 
-  const fechaNacimiento = birthday?.date
+  /*const fechaNacimientoStr = birthday?.date
     ? `${birthday.date.year ?? "0000"}-${birthday?.date.month
         ?.toString()
         .padStart(2, "0")}-${birthday.date.day?.toString().padStart(2, "0")}`
-    : undefined;
+    : null;
+  console.log(fechaNacimientoStr)
+  const fechaNacimientoDate = fechaNacimientoStr
+    ? new Date(fechaNacimientoStr)
+    : null;
+      console.log("fechaNacimientoDate", fechaNacimientoDate);*/
+  let fechaNacimientoDate = null;
+
+  if (birthday?.date) {
+    const year = birthday.date.year!;
+    const month = birthday.date.month!; // 1-12
+    const day = birthday.date.day!;
+
+    // Crear fecha local sin timezone
+    fechaNacimientoDate = new Date(year, month - 1, day);
+  }
 
   const address = person.addresses;
   const phone = person.phoneNumbers;
@@ -70,7 +106,7 @@ export const validarIdTokenGoogle = async (
     fotoUrl: payload.picture,
     googleId: payload.sub,
     genero: genero,
-    fechaNacimiento: fechaNacimiento,
+    fechaNacimiento: fechaNacimientoDate,
     tipoUsuario: TipoUsuarioEnum.GOOGLE,
   };
 

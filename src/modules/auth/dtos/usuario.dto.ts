@@ -5,7 +5,7 @@ export class UsuarioDto {
   email!: string;
   nombre?: string;
   apellido?: string;
-  fechaNacimiento?: string;
+  fechaNacimiento?: Date | null;
   genero?: GeneroEnum;
   direccion?: string;
   fotoUrl?: string;

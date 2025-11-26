@@ -3,7 +3,7 @@ import { Router } from "express";
 import { AuthController } from "./Auth.controller.js";
 import { AuthService } from "./Auth.service.js";
 import { validateSchema } from "../../middleware/validateSchema.js";
-import { crearUsuarioSchema } from "../../schemas/CreateUsuarioEvento.schema.js";
+import { crearUsuarioSchema } from "../../schemas/CreateUsuario.schema.js";
 import { asyncWrapper } from "../../common/utils/AsyncWrapper.js";
 
 const router = Router();
@@ -17,9 +17,9 @@ router.post(
 );
 
 router.post(
-    "/register-user-password",
-    validateSchema(crearUsuarioSchema),
-    asyncWrapper(authController.registerUserPassword)
-  );
+  "/register-user-password",
+  validateSchema(crearUsuarioSchema),
+  asyncWrapper(authController.registerUserPassword)
+);
 
 export default router;
