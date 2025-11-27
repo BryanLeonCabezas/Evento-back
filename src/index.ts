@@ -9,7 +9,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:8100", "http://localhost:4200"], // Ionic / Angular
+    origin: ["http://localhost:8100", "http://localhost:4200", "http://10.1.60.18:8100"], // Ionic / Angular
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

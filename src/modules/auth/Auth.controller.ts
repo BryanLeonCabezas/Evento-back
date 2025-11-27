@@ -18,4 +18,12 @@ export class AuthController {
     const usuario = await this.authService.authGoogle(req.body);
     res.status(201).json(usuario);
   };
+
+  loginUserPassword = async (req: Request, res: Response) => {
+    const usuario = await this.authService.loginUserPassword(
+      req.body.email,
+      req.body.password
+    );
+    res.status(200).json(usuario);
+  };
 }

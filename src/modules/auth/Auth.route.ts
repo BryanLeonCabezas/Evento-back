@@ -22,4 +22,9 @@ router.post(
   asyncWrapper(authController.registerUserPassword)
 );
 
+router.post(
+  "/login-user-password",
+  asyncWrapper(authController.loginUserPassword)
+);
+
 export default router;
