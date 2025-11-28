@@ -1,12 +1,13 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Usuarios } from "./modules/usuario/Usuario.entity.js";
-import { EventosUsuarios } from "./modules/eventoUsuario/EventosUsuarios.js";
+import { EventosUsuarios } from "./modules/eventoUsuario/EventosUsuarios.entity.js";
 import { Eventos } from "./modules/evento/Evento.entity.js";
 import { Salones } from "./modules/salones/Salones.entity.js";
 import { Subsalones } from "./modules/subsalones/Subsalones.entity.js";
 import { Instituciones } from "./modules/instituciones/Instituciones.entity.js";
 import { Locales } from "./modules/locales/Locales.entity.js";
+import { UsuarioInstituciones } from "./modules/usuarioIntituciones/UsuarioInstituciones.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "oracle",
@@ -18,5 +19,5 @@ export const AppDataSource = new DataSource({
   serviceName:"XEPDB1",
   synchronize: false,
   logging: false,
-  entities: [Usuarios, EventosUsuarios, Eventos, Salones, Subsalones, Instituciones, Locales],
+  entities: [Usuarios, EventosUsuarios, Eventos, Salones, Subsalones, Instituciones, Locales, UsuarioInstituciones],
 });

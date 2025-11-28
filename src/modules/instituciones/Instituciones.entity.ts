@@ -1,4 +1,5 @@
 import { Column, Entity, Index, OneToMany } from "typeorm";
+import { UsuarioInstituciones } from "../usuarioIntituciones/UsuarioInstituciones.entity.js";
 import { Locales } from "../locales/Locales.entity.js";
 
 
@@ -27,6 +28,15 @@ export class Instituciones {
   })
   fechaRegistro: Date | null;
 
+  @Column("varchar2", { name: "CODIGO_CONEXION", nullable: true, length: 20 })
+  codigoConexion: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales: Locales[];
+
+  @OneToMany(
+    () => UsuarioInstituciones,
+    (usuarioInstituciones) => usuarioInstituciones.idInstitucion
+  )
+  usuarioInstituciones: UsuarioInstituciones[];
 }

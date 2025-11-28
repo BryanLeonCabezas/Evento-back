@@ -1,5 +1,6 @@
 import { Column, Entity, Index, OneToMany } from "typeorm";
-import { EventosUsuarios } from "../eventoUsuario/EventosUsuarios.js";
+import { EventosUsuarios } from "../eventoUsuario/EventosUsuarios.entity.js";
+import { UsuarioInstituciones } from "../usuarioIntituciones/UsuarioInstituciones.entity.js";
 
 
 @Index("EVENTOS_USUARIOS_EMAIL_UK", ["email"], { unique: true })
@@ -71,4 +72,10 @@ export class Usuarios {
     (eventosUsuarios) => eventosUsuarios.idCliente
   )
   eventosUsuarios: EventosUsuarios[];
+
+  @OneToMany(
+    () => UsuarioInstituciones,
+    (usuarioInstituciones) => usuarioInstituciones.idCliente
+  )
+  usuarioInstituciones: UsuarioInstituciones[];
 }

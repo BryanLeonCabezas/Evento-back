@@ -6,7 +6,7 @@ import {
     ManyToOne,
     OneToMany,
   } from "typeorm";
-import { EventosUsuarios } from "../eventoUsuario/EventosUsuarios.js";
+import { EventosUsuarios } from "../eventoUsuario/EventosUsuarios.entity.js";
 import { Subsalones } from "../subsalones/Subsalones.entity.js";
 import { Salones } from "../salones/Salones.entity.js";
 
