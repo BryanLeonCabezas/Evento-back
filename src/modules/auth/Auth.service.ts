@@ -91,7 +91,7 @@ export class AuthService {
   async loginUserPassword(email: string, password: string) {
     console.log("Login user password", email, password);
 
-    if(!email || !password) throw new AppError("Faltan datos", 400);
+    if (!email || !password) throw new AppError("Faltan datos", 400);
 
     const usuario = await this.repoUsuario.findOneBy({ email });
     if (!usuario) throw new AppError("El usuario no existe", 400);
@@ -124,6 +124,35 @@ export class AuthService {
       token: accessToken,
       refreshToken: refreshToken,
     };
+  }
+
+  async logout(idCliente: string) {
+    console.log("Logout", idCliente);
+
+    const usuario = await this.repoUsuario.findOneBy({ idCliente });
+    console.log("usuario", usuario);
+
+    if (!usuario) throw new AppError("El usuario no existe", 400);
+
+    usuario.refreshToken = null;
+
+    await this.repoUsuario.save(usuario);
+
+    return {
+      message: "Logout exitoso",
+    };
+  }
+
+  async obtenerInfoUsuarioAutenticado(idCliente: string) {
+    const usuario = await this.repoUsuario.findOne({
+      where: { idCliente: idCliente },
+      relations: ["usuarioInstituciones", "usuarioInstituciones.idInstitucion"],
+    });
+    if (!usuario) {
+      throw new AppError("Usuario no encontrado", 404);
+    }
+
+    return usuario;
   }
 
   generateTokens(payload: any) {
