@@ -1,14 +1,14 @@
 // src/app.routes.ts
 import { Router } from "express";
-import usuarioRoutes from "./modules/usuario/Usuario.route.js";
-import authRoutes from "./modules/auth/Auth.route.js";
-import eventoRoutes from "./modules/evento/Evento.route.js";
-import institucionRoutes from "./modules/instituciones/Instituciones.route.js";
-import localesRoutes from "./modules/locales/Locales.route.js";
-import usuarioInstitucionRoutes from "./modules/usuarioIntituciones/UsuarioInstituciones.route.js";
-import salonesRoutes from "./modules/salones/Salones.route.js";
-import subsalonesRoutes from "./modules/subsalones/Subsalones.route.js";
-import eventosUsuariosRoutes from "./modules/eventoUsuario/EventosUsuarios.route.js";
+import usuarioRoutes from "./modules/usuario/route.js";
+import authRoutes from "./modules/auth/route.js";
+import eventoRoutes from "./modules/evento/route.js";
+import institucionRoutes from "./modules/instituciones/route.js";
+import localesRoutes from "./modules/locales/route.js";
+import usuarioInstitucionRoutes from "./modules/usuarioIntituciones/route.js";
+import salonesRoutes from "./modules/salones/route.js";
+import subsalonesRoutes from "./modules/subsalones/route.js";
+import eventosUsuariosRoutes from "./modules/eventoUsuario/route.js";
 const router = Router();
 
 // EVENTO USUARIO ENDPOINT

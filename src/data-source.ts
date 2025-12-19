@@ -1,13 +1,14 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Usuarios } from "./modules/usuario/Usuario.entity.js";
-import { EventosUsuarios } from "./modules/eventoUsuario/EventosUsuarios.entity.js";
-import { Eventos } from "./modules/evento/Evento.entity.js";
-import { Salones } from "./modules/salones/Salones.entity.js";
-import { Subsalones } from "./modules/subsalones/Subsalones.entity.js";
-import { Instituciones } from "./modules/instituciones/Instituciones.entity.js";
-import { Locales } from "./modules/locales/Locales.entity.js";
-import { UsuarioInstituciones } from "./modules/usuarioIntituciones/UsuarioInstituciones.entity.js";
+import { Usuarios } from "./modules/usuario/entity.js";
+import { EventosUsuarios } from "./modules/eventoUsuario/entity.js";
+import { Eventos } from "./modules/evento/entity.js";
+import { Salones } from "./modules/salones/entity.js";
+import { Subsalones } from "./modules/subsalones/entity.js";
+import { Instituciones } from "./modules/instituciones/entity.js";
+import { Locales } from "./modules/locales/entity.js";
+import { UsuarioInstituciones } from "./modules/usuarioIntituciones/entity.js";
+import { TarjetasUsuario } from "./modules/tarjetaUsuario/entity.js";
 
 export const AppDataSource = new DataSource({
   type: "oracle",
@@ -28,5 +29,6 @@ export const AppDataSource = new DataSource({
     Instituciones,
     Locales,
     UsuarioInstituciones,
+    TarjetasUsuario
   ],
 });
