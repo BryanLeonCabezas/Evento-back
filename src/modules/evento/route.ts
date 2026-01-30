@@ -10,6 +10,7 @@ const eventoService = new EventoService();
 const eventosController = new EventoController(eventoService);
 
 router.get("/", asyncWrapper(eventosController.getEventos));
+router.get("/:id", asyncWrapper(eventosController.getEventoById));
 
 
 export default router;

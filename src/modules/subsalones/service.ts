@@ -1,5 +1,5 @@
 import { AppError } from "../../common/utils/App.error.js";
-import { subsalonesReposiroty } from "./reposiroty.js";
+import { subsalonesReposiroty } from "./repository.js";
 
 export class SubsalonesService {
   private subsalonesReposiroty = subsalonesReposiroty;

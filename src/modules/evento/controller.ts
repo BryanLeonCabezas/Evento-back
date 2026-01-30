@@ -15,4 +15,13 @@ export class EventoController {
 
     res.status(200).json(eventos);
   };
+
+  getEventoById = async (req: Request, res: Response) => {
+    console.log("req.params", req.params);
+    const idEvento = Number(req.params.id);
+    console.log("idEvento", idEvento);
+    
+    const evento = await this.eventoService.geteventoById(idEvento);
+    res.status(200).json(evento);
+  };
 }

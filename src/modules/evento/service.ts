@@ -14,8 +14,15 @@ export class EventoService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+
   async geteventoById(id: number) {
-    const evento = await this.eventoRepository.findOneBy({ idEvento: id });
+    const evento = await this.eventoRepository.findOne({
+      where: { idEvento: id },
+      relations: {
+        idSalon: true,
+        idSubsalon: true
+      }
+    });
     return evento;
   }
 
@@ -55,4 +62,5 @@ export class EventoService {
       .leftJoinAndSelect("evento.idSubsalon", "subsalon")
       .getMany();
   }
+
 }
