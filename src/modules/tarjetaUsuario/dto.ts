@@ -8,5 +8,6 @@ export interface GuardarTarjetaDto {
   expiryYear: number;            
   bankName?: string;             
   transactionReference?: string; 
-  origin?: string;               
+  origin?: string;         
+  type?: string;      
 }

@@ -1,0 +1,21 @@
+{
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/tmp/**": true,
+    "**/bower_components/**": true,
+    "**/dist/**": true
+  },
+
+  "search.exclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.DS_Store": true,
+    "**/tmp": true
+  }
+}

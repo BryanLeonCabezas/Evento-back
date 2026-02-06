@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { EventoUsuarioService } from "./service.js";
+import { EventosUsuarios } from "./entity.js";
 
 export class EventoUsuariosController {
   constructor(private eventoUsuarioService: EventoUsuarioService) {}
@@ -7,7 +8,8 @@ export class EventoUsuariosController {
   suscribirUsuario = async (req: Request, res: Response) => {
     const idEvento = Number(req.params.idEvento);
     const idUsuario = req.params.idUsuario;
-
+   
+    
     const suscripcion = await this.eventoUsuarioService.suscribirUsuario(
       idEvento,
       idUsuario

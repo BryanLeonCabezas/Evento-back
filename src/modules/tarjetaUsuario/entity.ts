@@ -1,21 +1,42 @@
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Usuarios } from "../usuario/entity.js";
+
 @Entity("TARJETAS_USUARIO")
-@Index("UK_CARD_USER_TOKEN", ["usuario", "cardToken"], { unique: true })
 export class TarjetasUsuario {
   @PrimaryGeneratedColumn({ name: "ID_TARJETA", type: "number" })
   idTarjeta: number;
 
+  // 🔗 RELACIÓN CON USUARIOS
   @ManyToOne(() => Usuarios, (usuario) => usuario.tarjetas, { nullable: false })
-  @JoinColumn({ name: "USER_ID", referencedColumnName: "idCliente" })
+  @JoinColumn({ name: "ID_CLIENTE", referencedColumnName: "idCliente" })
   usuario: Usuarios;
 
-  @Column("varchar2", { name: "CARD_TOKEN", length: 200 })
-  cardToken: string;
+  @Column("varchar2", { name: "EMAIL", length: 150 })
+  email: string;
 
-  @Column("varchar2", { name: "LAST4", length: 4 })
+  @Column("varchar2", { name: "TOKEN", length: 200 })
+  token: string;
+
+  @Column("varchar2", {
+    name: "LAST4",
+    length: 4,
+  })
   last4: string;
 
-  @Column("varchar2", { name: "BRAND", length: 10 })
-  brand: string;
+  @Column("varchar2", { name: "BIN", length: 6, nullable: true })
+  bin: string | null;
+
+  @Column("varchar2", { name: "TIPO", length: 20 })
+  tipo: string; // VISA, MASTERCARD
+
+  @Column("varchar2", { name: "BANCO", length: 100, nullable: true })
+  banco: string | null;
 
   @Column("number", { name: "EXPIRY_MONTH", precision: 2 })
   expiryMonth: number;
@@ -23,12 +44,22 @@ export class TarjetasUsuario {
   @Column("number", { name: "EXPIRY_YEAR", precision: 4 })
   expiryYear: number;
 
-  @Column("varchar2", { name: "STATUS", length: 20, default: () => "'ACTIVE'" })
+  @Column("varchar2", { name: "STATUS", length: 20 })
   status: string;
 
-  @Column("date", { name: "CREATED_AT", default: () => "SYSDATE" })
-  createdAt: Date;
+  @Column("varchar2", { name: "ORIGIN", length: 50, nullable: true })
+  origin: string | null;
 
-  @Column("date", { name: "DELETED_AT", nullable: true })
-  deletedAt: Date | null;
+  @Column("varchar2", {
+    name: "TRANSACTION_REFERENCE",
+    length: 100,
+    nullable: true,
+  })
+  transactionReference: string | null;
+
+  @Column("number", { name: "ACTIVA", precision: 1 })
+  activa: number;
+
+  @Column("date", { name: "FECHA_REGISTRO" })
+  fechaRegistro: Date;
 }

@@ -16,8 +16,20 @@
     "strict": true,
     "skipLibCheck": true,
 
-    // ⚠️ IMPORTANTE: estos dos deben ir en false
     "isolatedModules": false,
     "verbatimModuleSyntax": false
-  }
+  },
+  /* ===============================
+     LIMITA LO QUE ANALIZA TS
+     =============================== */
+  "include": ["src/**/*.ts", "../nombre-provisional/src/app/core/dtos/evento-response.dto.ts"],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".git",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }

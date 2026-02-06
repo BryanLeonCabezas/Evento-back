@@ -2,6 +2,7 @@ import { Column, Entity, Index, OneToMany, PrimaryColumn } from "typeorm";
 import { EventosUsuarios } from "../eventoUsuario/entity.js";
 import { UsuarioInstituciones } from "../usuarioIntituciones/entity.js";
 import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
+import { EntradasEvento } from "../entradaEvento/entity.js";
 
 @Index("EVENTOS_USUARIOS_EMAIL_UK", ["email"], { unique: true })
 @Entity("USUARIOS")
@@ -68,16 +69,19 @@ export class Usuarios {
 
   @OneToMany(
     () => EventosUsuarios,
-    (eventosUsuarios) => eventosUsuarios.idCliente
+    (eventosUsuarios) => eventosUsuarios.idCliente,
   )
   eventosUsuarios: EventosUsuarios[];
 
   @OneToMany(
     () => UsuarioInstituciones,
-    (usuarioInstituciones) => usuarioInstituciones.idCliente
+    (usuarioInstituciones) => usuarioInstituciones.idCliente,
   )
   usuarioInstituciones: UsuarioInstituciones[];
 
   @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.usuario)
   tarjetas: TarjetasUsuario[];
+
+  @OneToMany(() => EntradasEvento, (entrada) => entrada.usuario)
+  entradas: EntradasEvento[];
 }

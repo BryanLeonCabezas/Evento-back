@@ -9,7 +9,7 @@ import { Instituciones } from "./modules/instituciones/entity.js";
 import { Locales } from "./modules/locales/entity.js";
 import { UsuarioInstituciones } from "./modules/usuarioIntituciones/entity.js";
 import { TarjetasUsuario } from "./modules/tarjetaUsuario/entity.js";
-
+import { EntradasEvento } from "./modules/entradaEvento/entity.js";
 export const AppDataSource = new DataSource({
   type: "oracle",
   host: "154.38.187.235",
@@ -29,6 +29,7 @@ export const AppDataSource = new DataSource({
     Instituciones,
     Locales,
     UsuarioInstituciones,
-    TarjetasUsuario
+    TarjetasUsuario,
+    EntradasEvento
   ],
 });

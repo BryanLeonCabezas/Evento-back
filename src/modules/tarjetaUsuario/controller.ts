@@ -7,20 +7,21 @@ export class TarjetaUsuarioController {
 
     obtenerTarjetaXId = async (req: Request, res: Response) => {
       const idTarjeta = Number(req.params.idTarjeta);
-      const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaXId(idTarjeta);
+      const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaPorId(idTarjeta);
       res.status(200).json(tarjeta);
     }
 
     obtenerTarjetaXIdUsuario = async (req: Request, res: Response) => {
-      const idUsuario = Number(req.params.idUsuario);
-      const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaXIdUsuario(idUsuario);
+      const idUsuario = req.params.idUsuario;
+      const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaPorIdUsuario(String(idUsuario));
       res.status(200).json(tarjeta);
     }
 
     guardarTarjetaPaymentez = async (req: Request, res: Response) => {
       const idCliente = req.params.idCliente;
-      const paymentezResponse = req.body;
-      const tarjeta = await this.tarjetaUsuarioService.guardarTarjetaPaymentez(idCliente, paymentezResponse);
+      const paymentezResponse = req.body.paymentezResponse;
+      const tarjetaReq = req.body.tarjetaReq;
+      const tarjeta = await this.tarjetaUsuarioService.guardarTarjetaPaymentez(idCliente, tarjetaReq, paymentezResponse);
       res.status(200).json(tarjeta);
     }
 

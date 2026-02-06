@@ -19,3 +19,9 @@ export const comparePassword = (password: string, storedHash: string) => {
 
   return hash === originalHash;
 };
+
+export const generateQrHash = (qrToken: string) => {
+ return crypto.createHmac("sha256", process.env.QR_SECRET!)
+    .update(qrToken)
+    .digest("hex");
+}

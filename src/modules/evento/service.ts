@@ -1,27 +1,81 @@
+import { EventoListDto } from "./dto/evento-list.js";
 import { eventoRepository } from "./repository.js";
 
 export class EventoService {
   private eventoRepository = eventoRepository;
 
-  async getEventos(page = 1, limit = 10) {
-    const [data, total] = await this.eventoRepository.findAndCount({
-      relations: ["idSalon", "idSubsalon", "eventosUsuarios"],
-      order: { fechaEvento: "ASC" },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  private mapToEventoListDto(evento: any): EventoListDto{
+    return {
+      idEvento: evento.idEvento,
+      titulo: evento.titulo,
+      descripcion: evento.descripcion,
+      fechaEvento: evento.fechaEvento,
+      horaInicio: evento.horaInicio,
+      horaFin: evento.horaFin,
+      imagenUrl: evento.imagenUrl,
+      precio: evento.precio,
+      destacado: evento.destacado,
+      ordenDestacado: evento.ordenDestacado,
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+      salon: {
+        idSalon: evento.idSalon.idSalon,
+        nombre: evento.idSalon.nombre,
+      },
+
+      subsalon: evento.idSubsalon
+        ? {
+            idSubsalon: evento.idSubsalon.idSubsalon,
+            nombre: evento.idSubsalon.nombre,
+          }
+        : null,
+    };
   }
 
+  async getEventos(page = 1, limit = 10) {
+    const qb = this.eventoRepository
+      .createQueryBuilder("e")
+      .leftJoin("e.idSalon", "s")
+      .leftJoin("e.idSubsalon", "ss")
+      .select([
+        "e.idEvento",
+        "e.titulo",
+        "e.descripcion",
+        "e.fechaEvento",
+        "e.horaInicio",
+        "e.horaFin",
+        "e.imagenUrl",
+        "e.destacado",
+        "e.ordenDestacado",
+        "e.precio",
+        "s.idSalon",
+        "s.nombre",
+        "ss.idSubsalon",
+        "ss.nombre",
+      ])
+      .orderBy("e.destacado", "DESC")
+      .addOrderBy("e.ordenDestacado", "ASC")
+      .addOrderBy("e.fechaEvento", "ASC")
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data : data.map((evento) => this.mapToEventoListDto(evento)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 
   async geteventoById(id: number) {
     const evento = await this.eventoRepository.findOne({
       where: { idEvento: id },
       relations: {
         idSalon: true,
-        idSubsalon: true
-      }
+        idSubsalon: true,
+      },
     });
     return evento;
   }
@@ -56,11 +110,14 @@ export class EventoService {
   }
 
   async getEventosPorBusqueda(texto: string) {
-    return this.eventoRepository.createQueryBuilder("evento")
-      .where("LOWER(evento.titulo) LIKE :texto OR LOWER(evento.descripcion) LIKE :texto", { texto: `%${texto.toLowerCase()}%` })
+    return this.eventoRepository
+      .createQueryBuilder("evento")
+      .where(
+        "LOWER(evento.titulo) LIKE :texto OR LOWER(evento.descripcion) LIKE :texto",
+        { texto: `%${texto.toLowerCase()}%` },
+      )
       .leftJoinAndSelect("evento.idSalon", "salon")
       .leftJoinAndSelect("evento.idSubsalon", "subsalon")
       .getMany();
   }
-
 }

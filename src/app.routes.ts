@@ -9,6 +9,8 @@ import usuarioInstitucionRoutes from "./modules/usuarioIntituciones/route.js";
 import salonesRoutes from "./modules/salones/route.js";
 import subsalonesRoutes from "./modules/subsalones/route.js";
 import eventosUsuariosRoutes from "./modules/eventoUsuario/route.js";
+import tarjetaUsuario from "./modules/tarjetaUsuario/route.js";
+import entradaEvento from "./modules/entradaEvento/route.js";
 const router = Router();
 
 // EVENTO USUARIO ENDPOINT
@@ -18,8 +20,10 @@ router.use("/evento", eventoRoutes);
 router.use("/institucion", institucionRoutes);
 router.use("/institucion-usuario", usuarioInstitucionRoutes);
 router.use("/locales", localesRoutes);
-router.use("/salones",salonesRoutes);
-router.use("/subsalones",subsalonesRoutes);
-router.use("/evento-usuario",eventosUsuariosRoutes);
+router.use("/salones", salonesRoutes);
+router.use("/subsalones", subsalonesRoutes);
+router.use("/evento-usuario", eventosUsuariosRoutes);
+router.use("/tarjeta-usuario", tarjetaUsuario);
+router.use("/entrada-evento", entradaEvento);
 
 export default router;
