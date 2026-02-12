@@ -4,18 +4,34 @@ import { eventoRepository } from "./repository.js";
 export class EventoService {
   private eventoRepository = eventoRepository;
 
-  private mapToEventoListDto(evento: any): EventoListDto{
+  private formatTime(value: any): string {
+    console.log("Valor original:", value);
+    if (!value) return "";
+
+    const d = new Date(value);
+
+    const hh = d.getHours().toString().padStart(2, "0");
+    const mm = d.getMinutes().toString().padStart(2, "0");
+
+    return `${hh}:${mm}`;
+  }
+
+  private mapToEventoListDto(evento: any): EventoListDto {
     return {
       idEvento: evento.idEvento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
       fechaEvento: evento.fechaEvento,
-      horaInicio: evento.horaInicio,
-      horaFin: evento.horaFin,
+      horaInicio: this.formatTime(evento.horaInicio),
+      horaFin: this.formatTime(evento.horaFin),
       imagenUrl: evento.imagenUrl,
       precio: evento.precio,
       destacado: evento.destacado,
       ordenDestacado: evento.ordenDestacado,
+      publicoEsperado: evento.publicoEsperado,
+      tiempoSetupMin: evento.tiempoSetupMin,
+      tiempoCleanMin: evento.tiempoCleanMin,
+      fechaRegistro: evento.fechaRegistro,
 
       salon: {
         idSalon: evento.idSalon.idSalon,
@@ -28,6 +44,17 @@ export class EventoService {
             nombre: evento.idSubsalon.nombre,
           }
         : null,
+      local: {
+        nombre: evento.idSalon.idLocal.nombre,
+        ubicacion: evento.idSalon.idLocal.ubicacion,
+        descripcion: evento.idSalon.idLocal.descripcion,
+      },
+
+      institucion: {
+        nombre: evento.idSalon.idLocal.idInstitucion.nombre,
+        direccion: evento.idSalon.idLocal.idInstitucion.direccion,
+        ciudad: evento.idSalon.idLocal.idInstitucion.ciudad,
+      },
     };
   }
 
@@ -35,8 +62,11 @@ export class EventoService {
     const qb = this.eventoRepository
       .createQueryBuilder("e")
       .leftJoin("e.idSalon", "s")
+      .leftJoin("s.idLocal", "l")
+      .leftJoin("l.idInstitucion", "i")
       .leftJoin("e.idSubsalon", "ss")
       .select([
+        // EVENTO
         "e.idEvento",
         "e.titulo",
         "e.descripcion",
@@ -44,11 +74,31 @@ export class EventoService {
         "e.horaInicio",
         "e.horaFin",
         "e.imagenUrl",
-        "e.destacado",
-        "e.ordenDestacado",
         "e.precio",
+        "e.destacado", 
+        "e.ordenDestacado",
+        "e.publicoEsperado",
+        "e.tiempoSetupMin",
+        "e.tiempoCleanMin",
+        "e.fechaRegistro",
+
+        // SALON
         "s.idSalon",
         "s.nombre",
+
+        // LOCAL
+        "l.idLocal",
+        "l.nombre",
+        "l.ubicacion",
+        "l.descripcion",
+
+        // INSTITUCION
+        "i.idInstitucion",
+        "i.nombre",
+        "i.direccion",
+        "i.ciudad",
+
+        // SUBSALON
         "ss.idSubsalon",
         "ss.nombre",
       ])
@@ -61,7 +111,7 @@ export class EventoService {
     const [data, total] = await qb.getManyAndCount();
 
     return {
-      data : data.map((evento) => this.mapToEventoListDto(evento)),
+      data: data.map((evento) => this.mapToEventoListDto(evento)),
       total,
       page,
       limit,
@@ -73,11 +123,18 @@ export class EventoService {
     const evento = await this.eventoRepository.findOne({
       where: { idEvento: id },
       relations: {
-        idSalon: true,
+        idSalon: {
+          idLocal: {
+            idInstitucion: true,
+          },
+        },
         idSubsalon: true,
       },
     });
-    return evento;
+
+    if (!evento) return null;
+
+    return this.mapToEventoListDto(evento);
   }
 
   async getEventosByFecha(fecha: Date) {

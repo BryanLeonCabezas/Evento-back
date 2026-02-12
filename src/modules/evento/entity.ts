@@ -23,13 +23,13 @@ export class Eventos {
   @Column("varchar2", { name: "DESCRIPCION", nullable: true, length: 2000 })
   descripcion: string | null;
 
-  @Column("date", { name: "FECHA_EVENTO" })
+  @Column("date", { name: "FECHA_EVENTO", type: "timestamp" })
   fechaEvento: Date;
 
-  @Column("date", { name: "HORA_INICIO" })
+  @Column("date", { name: "HORA_INICIO", type: "timestamp"  })
   horaInicio: Date;
 
-  @Column("date", { name: "HORA_FIN" })
+  @Column("date", { name: "HORA_FIN", type: "timestamp" })
   horaFin: Date;
 
   @Column("number", {

@@ -2,13 +2,17 @@ export interface EventoListDto {
   idEvento: number;
   titulo: string;
   descripcion: string;
-  fechaEvento: string;
-  horaInicio: string;
-  horaFin: string;
+  fechaEvento: string; // YYYY-MM-DD
+  horaInicio: string; // HH:mm
+  horaFin: string; // HH:mm
   imagenUrl: string;
   precio: number;
   destacado: number;
   ordenDestacado?: number;
+  publicoEsperado?: number | null;
+  tiempoSetupMin?: number | null;
+  tiempoCleanMin?: number | null;
+  fechaRegistro?: string | null;
 
   salon: {
     idSalon: number;
@@ -19,4 +23,16 @@ export interface EventoListDto {
     idSubsalon: number;
     nombre: string;
   } | null;
+
+  local: {
+    nombre: string;
+    ubicacion: string | null;
+    descripcion: string | null;
+  };
+
+  institucion: {
+    nombre: string;
+    direccion: string | null;
+    ciudad: string | null;
+  };
 }
