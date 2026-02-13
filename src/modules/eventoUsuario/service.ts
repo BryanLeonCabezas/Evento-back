@@ -125,7 +125,7 @@ export class EventoUsuarioService {
       "e.titulo AS titulo",
       "e.fechaEvento AS fechaEvento",
     ])
-    .getRawMany(); // 👈 CLAVE
+    .getRawMany(); 
 
     if (!eventos || eventos.length === 0) {
       return {

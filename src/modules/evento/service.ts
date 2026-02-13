@@ -1,8 +1,11 @@
+import { id } from "zod/locales";
 import { EventoListDto } from "./dto/evento-list.js";
 import { eventoRepository } from "./repository.js";
+import { usuarioInstitucionesReposiroty } from "../usuarioIntituciones/repository.js";
 
 export class EventoService {
   private eventoRepository = eventoRepository;
+  private usuarioInstitucionRepository = usuarioInstitucionesReposiroty;
 
   private formatTime(value: any): string {
     console.log("Valor original:", value);
@@ -49,22 +52,33 @@ export class EventoService {
         ubicacion: evento.idSalon.idLocal.ubicacion,
         descripcion: evento.idSalon.idLocal.descripcion,
       },
-
-      institucion: {
-        nombre: evento.idSalon.idLocal.idInstitucion.nombre,
-        direccion: evento.idSalon.idLocal.idInstitucion.direccion,
-        ciudad: evento.idSalon.idLocal.idInstitucion.ciudad,
-      },
     };
   }
 
-  async getEventos(page = 1, limit = 10) {
+  async getEventosByUsuario(page = 1, limit = 10, idCliente: string) {
+    console.log("idCliente en service:", idCliente);
+    const institucionesSuscritasPorUsuario =
+      await await this.usuarioInstitucionRepository
+        .createQueryBuilder("ui")
+        .leftJoinAndSelect("ui.idInstitucion", "i")
+        .where("ui.idCliente = :idCliente", { idCliente })
+        .select(["i.idInstitucion", "i.nombre", "i.direccion", "i.ciudad"])
+        .getMany();
+
+    console.log(
+      "institucionesSuscritasPorUsuario",
+      institucionesSuscritasPorUsuario,
+    );
+
     const qb = this.eventoRepository
       .createQueryBuilder("e")
       .leftJoin("e.idSalon", "s")
       .leftJoin("s.idLocal", "l")
       .leftJoin("l.idInstitucion", "i")
+      .innerJoin("i.usuarioInstituciones", "ui")
+      .innerJoin("ui.idCliente", "u")
       .leftJoin("e.idSubsalon", "ss")
+      .where("u.idCliente = :idCliente", { idCliente })
       .select([
         // EVENTO
         "e.idEvento",
@@ -75,7 +89,7 @@ export class EventoService {
         "e.horaFin",
         "e.imagenUrl",
         "e.precio",
-        "e.destacado", 
+        "e.destacado",
         "e.ordenDestacado",
         "e.publicoEsperado",
         "e.tiempoSetupMin",

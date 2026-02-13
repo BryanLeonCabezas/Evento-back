@@ -31,6 +31,15 @@ export class Instituciones {
   @Column("varchar2", { name: "CODIGO_CONEXION", nullable: true, length: 20 })
   codigoConexion: string | null;
 
+  @Column("varchar2", { name: "USUARIO_PASARELA", nullable: true, length: 20 })
+  usuarioPasarela: string | null;
+
+  @Column("varchar2", { name: "CONTRASENA_PASARELA", nullable: true, length: 20 })
+  contrasenaPasarela: string | null;
+
+  @Column("varchar2", { name: "TOKEN_PASARELA", nullable: true, length: 20 })
+  tokenPasarela: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales: Locales[];
 

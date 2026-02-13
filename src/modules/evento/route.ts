@@ -9,7 +9,7 @@ const router = Router();
 const eventoService = new EventoService();
 const eventosController = new EventoController(eventoService);
 
-router.get("/", asyncWrapper(eventosController.getEventos));
+router.get("/usuario/:idCliente", asyncWrapper(eventosController.getEventos));
 router.get("/:id", asyncWrapper(eventosController.getEventoById));
 
 
