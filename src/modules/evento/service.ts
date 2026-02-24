@@ -2,10 +2,14 @@ import { id } from "zod/locales";
 import { EventoListDto } from "./dto/evento-list.js";
 import { eventoRepository } from "./repository.js";
 import { usuarioInstitucionesReposiroty } from "../usuarioIntituciones/repository.js";
+import { institucionRepository } from "../instituciones/repository.js";
+import { EventosPorInstitucionDto } from "./dto/eventoPorInstitucion.js";
+import { EventosQueries } from "./querys.js";
+import { log } from "node:console";
 
 export class EventoService {
   private eventoRepository = eventoRepository;
-  private usuarioInstitucionRepository = usuarioInstitucionesReposiroty;
+  private institucionRepository = institucionRepository;
 
   private formatTime(value: any): string {
     console.log("Valor original:", value);
@@ -56,31 +60,15 @@ export class EventoService {
   }
 
   async getEventosByUsuario(page = 1, limit = 10, idCliente: string) {
-    console.log("idCliente en service:", idCliente);
-    const institucionesSuscritasPorUsuario =
-      await await this.usuarioInstitucionRepository
-        .createQueryBuilder("ui")
-        .leftJoinAndSelect("ui.idInstitucion", "i")
-        .where("ui.idCliente = :idCliente", { idCliente })
-        .select(["i.idInstitucion", "i.nombre", "i.direccion", "i.ciudad"])
-        .getMany();
-
-    console.log(
-      "institucionesSuscritasPorUsuario",
-      institucionesSuscritasPorUsuario,
-    );
-
     const qb = this.eventoRepository
       .createQueryBuilder("e")
       .leftJoin("e.idSalon", "s")
       .leftJoin("s.idLocal", "l")
       .leftJoin("l.idInstitucion", "i")
       .innerJoin("i.usuarioInstituciones", "ui")
-      .innerJoin("ui.idCliente", "u")
       .leftJoin("e.idSubsalon", "ss")
-      .where("u.idCliente = :idCliente", { idCliente })
+      .where("ui.idCliente = :idCliente", { idCliente })
       .select([
-        // EVENTO
         "e.idEvento",
         "e.titulo",
         "e.descripcion",
@@ -96,23 +84,19 @@ export class EventoService {
         "e.tiempoCleanMin",
         "e.fechaRegistro",
 
-        // SALON
         "s.idSalon",
         "s.nombre",
 
-        // LOCAL
         "l.idLocal",
         "l.nombre",
         "l.ubicacion",
         "l.descripcion",
 
-        // INSTITUCION
         "i.idInstitucion",
         "i.nombre",
         "i.direccion",
         "i.ciudad",
 
-        // SUBSALON
         "ss.idSubsalon",
         "ss.nombre",
       ])
@@ -124,16 +108,99 @@ export class EventoService {
 
     const [data, total] = await qb.getManyAndCount();
 
+    const agrupado = data.reduce(
+      (acc, evento) => {
+        const institucion = evento.idSalon?.idLocal?.idInstitucion;
+        if (!institucion) return acc;
+
+        const id = institucion.idInstitucion;
+        if (!acc[id]) {
+          acc[id] = {
+            institucion: {
+              idInstitucion: institucion.idInstitucion,
+              nombre: institucion.nombre,
+              direccion: institucion.direccion ?? null,
+              ciudad: institucion.ciudad ?? null,
+              eventos: [],
+            },
+          } as EventosPorInstitucionDto;
+        }
+
+        acc[id].institucion.eventos.push(this.mapToEventoListDto(evento));
+
+        return acc;
+      },
+      {} as Record<number, any>,
+    );
+
     return {
-      data: data.map((evento) => this.mapToEventoListDto(evento)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      data: Object.values(agrupado),
     };
   }
 
-  async geteventoById(id: number) {
+  async getHomeEventos(idCliente: string) {
+    
+    const proximosQb = this.eventoRepository.createQueryBuilder("e");
+    const proximos = await EventosQueries.proximos(
+      EventosQueries.baseEventosUsuario(proximosQb, idCliente),
+    )
+      .take(5)
+      .getMany();
+    
+    const destacadosQb = this.eventoRepository.createQueryBuilder("e");
+    const destacados = await EventosQueries.destacados(
+      EventosQueries.baseEventosUsuario(destacadosQb, idCliente),
+    )
+      .take(5)
+      .getMany();
+
+    console.log("Destacados eventos:", destacados);
+    
+    const institucionQb = this.eventoRepository.createQueryBuilder("e");
+    const eventosInstitucion = await EventosQueries.baseEventosUsuario(
+      institucionQb,
+      idCliente,
+    )
+      .orderBy("i.idInstitucion", "ASC")
+      .addOrderBy("e.fechaEvento", "ASC")
+      .getMany();
+
+    console.log("Eventos por institución:", eventosInstitucion);
+
+    const agrupado = eventosInstitucion.reduce(
+      (acc, evento) => {
+        const institucion = evento.idSalon?.idLocal?.idInstitucion;
+        if (!institucion) return acc;
+
+        const id = institucion.idInstitucion;
+
+        if (!acc[id]) {
+          acc[id] = {
+            institucion: {
+              idInstitucion: institucion.idInstitucion,
+              nombre: institucion.nombre,
+              direccion: institucion.direccion ?? null,
+              ciudad: institucion.ciudad ?? null,
+              eventos: [],
+            },
+          };
+        }
+
+        acc[id].institucion.eventos.push(this.mapToEventoListDto(evento));
+
+        return acc;
+      },
+      {} as Record<number, any>,
+    );
+
+    return {
+      proximos: proximos.map((e) => this.mapToEventoListDto(e)),
+      destacados: destacados.map((e) => this.mapToEventoListDto(e)),
+      porInstitucion: Object.values(agrupado),
+    };
+  }
+
+  async getEventoById(id: number) {
     const evento = await this.eventoRepository.findOne({
       where: { idEvento: id },
       relations: {
@@ -148,7 +215,21 @@ export class EventoService {
 
     if (!evento) return null;
 
-    return this.mapToEventoListDto(evento);
+    const dto = this.mapToEventoListDto(evento);
+
+    const institucion = evento.idSalon?.idLocal?.idInstitucion;
+
+    return {
+      ...dto,
+      institucion: institucion
+        ? {
+            idInstitucion: institucion.idInstitucion,
+            nombre: institucion.nombre,
+            direccion: institucion.direccion ?? null,
+            ciudad: institucion.ciudad ?? null,
+          }
+        : null,
+    };
   }
 
   async getEventosByFecha(fecha: Date) {

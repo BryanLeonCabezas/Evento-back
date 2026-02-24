@@ -6,6 +6,7 @@ export interface EventosPorInstitucionDto {
     nombre: string;
     direccion: string | null;
     ciudad: string | null;
+    eventos: EventoListDto[];
   };
-  eventos: EventoListDto[];
+  
 }

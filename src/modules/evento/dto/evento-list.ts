@@ -30,4 +30,10 @@ export interface EventoListDto {
     descripcion: string | null;
   };
 
+  institucion?: {
+    idInstitucion: number;
+    nombre: string;
+    direccion: string | null;
+    ciudad: string | null;
+  };
 }

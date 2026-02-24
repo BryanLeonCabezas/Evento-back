@@ -7,9 +7,13 @@ export class EventoController {
 
   getEventos = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 8;
     const idCliente = req.params.idCliente as string;
-    const eventos = await this.eventoService.getEventosByUsuario(page, limit, idCliente);
+    const eventos = await this.eventoService.getEventosByUsuario(
+      page,
+      limit,
+      idCliente,
+    );
 
     if (!eventos || !eventos.data || eventos.data.length === 0)
       throw new AppError("No se encontraron eventos", 404);
@@ -22,7 +26,17 @@ export class EventoController {
     const idEvento = Number(req.params.id);
     console.log("idEvento", idEvento);
 
-    const evento = await this.eventoService.geteventoById(idEvento);
+    const evento = await this.eventoService.getEventoById(idEvento);
     res.status(200).json(evento);
+  };
+
+  getHomeEventos = async (req: Request, res: Response) => {
+    const idCliente = req.params.idCliente as string;
+
+    const eventos = await this.eventoService.getHomeEventos(idCliente);
+
+    if (!eventos) throw new AppError("No se encontraron eventos", 404);
+
+    res.status(200).json(eventos);
   };
 }
