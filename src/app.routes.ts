@@ -11,6 +11,7 @@ import subsalonesRoutes from "./modules/subsalones/route.js";
 import eventosUsuariosRoutes from "./modules/eventoUsuario/route.js";
 import tarjetaUsuario from "./modules/tarjetaUsuario/route.js";
 import entradaEvento from "./modules/entradaEvento/route.js";
+import payments from "./modules/payments/route.js";
 const router = Router();
 
 // EVENTO USUARIO ENDPOINT
@@ -25,5 +26,5 @@ router.use("/subsalones", subsalonesRoutes);
 router.use("/evento-usuario", eventosUsuariosRoutes);
 router.use("/tarjeta-usuario", tarjetaUsuario);
 router.use("/entrada-evento", entradaEvento);
-
+router.use("/payments", payments);
 export default router;
