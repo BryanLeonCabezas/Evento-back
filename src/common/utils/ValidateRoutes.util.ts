@@ -1,3 +1,4 @@
+import { PaymentezBrand } from "../enums/brandTarjeta.enum.js";
 import { messages } from "./messages.util.js";
 import { EntityManager } from "typeorm";
 
@@ -175,4 +176,13 @@ export const isValidCodigoEmpresa = async (em: EntityManager, valor: number) => 
   if (count === 0) {
     throw messages.recordNotFound("Empresa", "codigoEmpresa", valor);
   }
+};
+
+export const PaymentezBrandNombre: Record<PaymentezBrand, string> = {
+  [PaymentezBrand.VISA]: "VISA",
+  [PaymentezBrand.MASTERCARD]: "Mastercard",
+  [PaymentezBrand.AMEX]: "American Express",
+  [PaymentezBrand.DINERS]: "Diners Club",
+  [PaymentezBrand.DISCOVER]: "Discover",
+  [PaymentezBrand.MAESTRO]: "Maestro",
 };

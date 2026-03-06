@@ -57,8 +57,15 @@ export class TarjetasUsuario {
   })
   transactionReference: string | null;
 
-  @Column("number", { name: "ACTIVA", precision: 1 })
-  activa: number;
+  @Column("varchar2", {
+    name: "HOLDER_NAME",
+    length: 100,
+    nullable: true,
+  })
+  holderName: string | null;
+
+  @Column("number", { name: "PREDETERMINADO", precision: 1 })
+  predeterminado: number;
 
   @Column("date", { name: "FECHA_REGISTRO" })
   fechaRegistro: Date;

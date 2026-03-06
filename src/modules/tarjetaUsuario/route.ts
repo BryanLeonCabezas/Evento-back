@@ -10,6 +10,7 @@ const tarjetaUsuarioController = new TarjetaUsuarioController(tarjetaUsuarioServ
 router.get("/id/:idTarjeta", tarjetaUsuarioController.obtenerTarjetaXId);
 router.get("/usuario/:idUsuario", tarjetaUsuarioController.obtenerTarjetaXIdUsuario);
 router.post("/:idCliente", tarjetaUsuarioController.guardarTarjetaPaymentez);
+router.post("/predeterminada/:idCliente", tarjetaUsuarioController.establecerPredeterminada);
 router.delete("/:idTarjeta", tarjetaUsuarioController.eliminarTarjeta);
 
 export default router;

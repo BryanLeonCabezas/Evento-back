@@ -48,19 +48,20 @@ export class PaymentezProvider implements PaymentProvider {
   }
 
   async deleteCard(userId: string, cardToken: string) {
-  const response = await axios.post(
-    `${this.baseUrl}/v2/card/delete`,
-    {
-      user: { id: userId },
-      card: { token: cardToken },
-    },
-    {
-      headers: this.getHeaders(), 
-    }
-  );
-
-  return response.data;
-}
+    console.log("Deleting card with token:", cardToken, "for userId:", userId);
+    const response = await axios.post(
+      `${this.baseUrl}/v2/card/delete`,
+      {
+        user: { id: userId },
+        card: { token: cardToken },
+      },
+      {
+        headers: this.getHeaders(),
+      },
+    );
+    console.log("Response from Paymentez deleteCard:", response.data);
+    return response.data;
+  }
 
   async debit(data: {
     userId: string;
