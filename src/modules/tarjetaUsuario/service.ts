@@ -236,4 +236,41 @@ export class TarjetaUsuarioService {
       message: "Tarjeta establecida como predeterminada",
     };
   }
+
+  async obtenerTarjetaPredeterminada(idUsuario: string) {
+
+    const tarjeta = await this.tarjetaUsuarioRepository.createQueryBuilder("tu").
+    where("tu.usuario.idCliente = :idUsuario", { idUsuario }).
+    andWhere("tu.predeterminado = :predeterminado", { predeterminado: PredeterminadoTarjeta.SI }).
+    andWhere("tu.status = :status", { status: EstadoTarjeta.ACTIVA }).
+    getOne();
+
+    if (!tarjeta) {
+      return {
+        message: "No se encontró tarjeta predeterminada para el usuario",
+        data: null,
+      };
+    }
+
+    const tarjetaResponse: TarjetaUsuarioResponseDto = {
+      idTarjeta: tarjeta.idTarjeta,
+      brand: tarjeta.tipo,
+      brandName:
+        PaymentezBrandNombre[tarjeta.tipo as PaymentezBrand] || "DESCONOCIDO",
+      last4: tarjeta.last4,
+      bin: tarjeta.bin ?? "",
+      expMonth: tarjeta.expiryMonth,
+      expYear: tarjeta.expiryYear,
+      banco: tarjeta.banco ?? "",
+      predeterminado:
+        tarjeta.predeterminado == PredeterminadoTarjeta.SI ? true : false,
+    };
+
+    return {
+      message: "Tarjeta predeterminada encontrada",
+      data: tarjetaResponse,
+    };
+  }
+
+
 }

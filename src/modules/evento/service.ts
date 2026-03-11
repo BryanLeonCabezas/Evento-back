@@ -200,37 +200,53 @@ export class EventoService {
     };
   }
 
-  async getEventoById(id: number) {
-    const evento = await this.eventoRepository.findOne({
-      where: { idEvento: id },
-      relations: {
-        idSalon: {
-          idLocal: {
-            idInstitucion: true,
-          },
-        },
-        idSubsalon: true,
-      },
-    });
+ async getEventoById(id: number, idCliente?: string) {
 
-    if (!evento) return null;
+  const qb = this.eventoRepository
+    .createQueryBuilder("e")
+    .leftJoinAndSelect("e.idSalon", "s")
+    .leftJoinAndSelect("s.idLocal", "l")
+    .leftJoinAndSelect("l.idInstitucion", "i")
+    .leftJoinAndSelect("e.idSubsalon", "ss");
 
-    const dto = this.mapToEventoListDto(evento);
-
-    const institucion = evento.idSalon?.idLocal?.idInstitucion;
-
-    return {
-      ...dto,
-      institucion: institucion
-        ? {
-            idInstitucion: institucion.idInstitucion,
-            nombre: institucion.nombre,
-            direccion: institucion.direccion ?? null,
-            ciudad: institucion.ciudad ?? null,
-          }
-        : null,
-    };
+  // 👇 join para saber si el usuario compró el evento
+  if (idCliente) {
+    qb.leftJoinAndSelect(
+      "e.eventosUsuarios",
+      "eu",
+      "eu.idCliente = :idCliente",
+      { idCliente }
+    );
   }
+
+  qb.where("e.idEvento = :id", { id });
+
+  const evento = await qb.getOne();
+
+  if (!evento) return null;
+
+  const dto = this.mapToEventoListDto(evento);
+
+  const institucion = evento.idSalon?.idLocal?.idInstitucion;
+
+  return {
+    ...dto,
+
+    // 👇 si existe registro en eventosUsuarios significa que lo compró
+    adquirido: !!evento.eventosUsuarios?.length,
+
+    fechaCompra: evento.eventosUsuarios?.[0]?.fechaRegistro ?? null,
+
+    institucion: institucion
+      ? {
+          idInstitucion: institucion.idInstitucion,
+          nombre: institucion.nombre,
+          direccion: institucion.direccion ?? null,
+          ciudad: institucion.ciudad ?? null,
+        }
+      : null,
+  };
+}
 
   async getEventosByFecha(fecha: Date) {
     return this.eventoRepository.find({

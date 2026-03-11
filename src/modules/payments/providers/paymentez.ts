@@ -68,12 +68,14 @@ export class PaymentezProvider implements PaymentProvider {
     cardToken: string;
     amount: number;
     description: string;
+    email: string;
   }) {
     const response = await axios.post(
       `${this.baseUrl}/v2/transaction/debit/`,
       {
         user: {
           id: data.userId,
+          email: data.email
         },
         order: {
           amount: data.amount,

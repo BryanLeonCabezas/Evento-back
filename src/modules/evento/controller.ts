@@ -23,10 +23,11 @@ export class EventoController {
 
   getEventoById = async (req: Request, res: Response) => {
     console.log("req.params", req.params);
+    const idCliente = req.params.idCliente as string;
     const idEvento = Number(req.params.id);
     console.log("idEvento", idEvento);
 
-    const evento = await this.eventoService.getEventoById(idEvento);
+    const evento = await this.eventoService.getEventoById(idEvento, idCliente);
     res.status(200).json(evento);
   };
 

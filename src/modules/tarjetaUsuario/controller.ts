@@ -41,12 +41,19 @@ export class TarjetaUsuarioController {
     const { idTarjeta } = req.body;
     const idUsuario = req.params.idCliente;
 
-    const tarjeta =
-      await this.tarjetaUsuarioService.establecerPredeterminada(
-        idUsuario,
-        idTarjeta,
-      );
+    const tarjeta = await this.tarjetaUsuarioService.establecerPredeterminada(
+      idUsuario,
+      idTarjeta,
+    );
 
+    res.status(200).json(tarjeta);
+  };
+
+  obtenerTarjetaPredeterminada = async (req: Request, res: Response) => {
+    const idUsuario = req.params.idUsuario;
+    console.log("Obteniendo tarjeta predeterminada para usuario", idUsuario);
+    const tarjeta =
+      await this.tarjetaUsuarioService.obtenerTarjetaPredeterminada(idUsuario);
     res.status(200).json(tarjeta);
   };
 }

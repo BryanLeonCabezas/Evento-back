@@ -8,11 +8,14 @@ export class EventoUsuariosController {
   suscribirUsuario = async (req: Request, res: Response) => {
     const idEvento = Number(req.params.idEvento);
     const idUsuario = req.params.idUsuario;
-   
-    
+    const { observacion, idTarjeta } = req.body;
+    console.log(req.body);
     const suscripcion = await this.eventoUsuarioService.suscribirUsuario(
       idEvento,
-      idUsuario
+      idUsuario,
+      undefined,
+      observacion,
+      idTarjeta
     );
     res.status(200).json(suscripcion);
   };
