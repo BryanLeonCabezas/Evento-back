@@ -12,10 +12,34 @@ import {
   usuarioYaInscrito,
 } from "./query.js";
 import { eventoUsuarioReposiroty } from "./repository.js";
+import { Transactional } from "typeorm-transactional";
+import { log } from "console";
+import { HistorialEventosXUsuarioDto } from "./dto.js";
+import {
+  formatLocalDate,
+  formatTime,
+} from "../../common/utils/ValidateRoutes.util.js";
+import { generarCodigoQR } from "../../common/utils/crypto.util.js";
 
 export class EventoUsuarioService {
   private eventoUsuarioReposiroty = eventoUsuarioReposiroty;
   private paymentezProvider = new PaymentezProvider();
+
+  private mapToHistorialEventosXUsuarioDto(
+    evento: any,
+  ): HistorialEventosXUsuarioDto {
+    return {
+      idEvento: evento.IDEVENTO,
+      titulo: evento.TITULO,
+      fechaEvento: formatLocalDate(evento.FECHAEVENTO),
+      horaInicio: formatTime(evento.HORAINICIO),
+      horaFin: formatTime(evento.HORAFIN),
+      estado: evento.ESTADO as EstadoEventoUsuario,
+      imgUrl: evento.IMGURL,
+    };
+  }
+
+  @Transactional()
   async suscribirUsuario(
     idEvento: number,
     idUsuario: string,
@@ -44,6 +68,7 @@ export class EventoUsuarioService {
       obtenerUsuario(this.eventoUsuarioReposiroty, idUsuario),
       usuarioYaInscrito(this.eventoUsuarioReposiroty, idEvento, idUsuario),
     ]);
+    let transaccion: any = null;
     console.log("Usuario encontrado:", usuario);
     if (!evento) {
       throw new AppError("Evento no encontrado", 404);
@@ -68,28 +93,29 @@ export class EventoUsuarioService {
     if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO) {
       throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
     }
-    const dataDebit = {
-      userId: idUsuario,
-      cardToken: tarjetaUsuario.TOKEN,
-      amount: precioEvento.PRECIO,
-      description: `Pago por inscripción al evento ${evento.TITULO}`,
-      email: usuario.EMAIL,
-    };
 
-    console.log("Datos para el débito:", dataDebit);
+    if (precioEvento.PRECIO > 0) {
+      const dataDebit = {
+        userId: idUsuario,
+        cardToken: tarjetaUsuario.TOKEN,
+        amount: precioEvento.PRECIO,
+        description: `Pago por inscripción al evento ${evento.TITULO}`,
+        email: usuario.EMAIL,
+      };
 
-    const response = await this.paymentezProvider.debit(dataDebit);
+      console.log("Datos para el débito:", dataDebit);
 
-    const transaccion = response?.transaction;
+      const responsePago = await this.paymentezProvider.debit(dataDebit);
 
-    console.log("Respuesta de Paymentez:", response);
-    if (!transaccion || transaccion.status_detail !== 3) {
-      console.log("Error en la transacción:", response);
+      transaccion = responsePago?.transaction;
 
-      throw new AppError(
-        "No se pudo procesar el pago. Por favor, verifica tu método de pago o intenta nuevamente.",
-        400,
-      );
+      console.log("Respuesta de Paymentez:", responsePago);
+      if (!transaccion || transaccion.status_detail !== 3) {
+        throw new AppError(
+          "No se pudo procesar el pago. Verifica tu método de pago.",
+          400,
+        );
+      }
     }
 
     const nuevoRegistro = this.eventoUsuarioReposiroty.create({
@@ -97,19 +123,27 @@ export class EventoUsuarioService {
       idCliente: { idCliente: idUsuario },
       estado: EstadoEventoUsuario.SUSCRITO,
       observacion,
+      qrToken: generarCodigoQR("TCK"),
     });
 
-    await this.eventoUsuarioReposiroty.save(nuevoRegistro);
+    const transaccionId = transaccion?.id ?? null;
 
-    return {
-      message: "Usuario suscrito correctamente",
-      data:{
+    const response = {
+      message:
+        precioEvento.PRECIO > 0
+          ? "Pago realizado e inscripción confirmada"
+          : "Inscripción confirmada (evento gratuito)",
+      data: {
         idEvento,
         nombreEvento: evento.TITULO,
-        transaccionId: transaccion.id,
+        transaccionId,
       },
       success: true,
     };
+
+    await this.eventoUsuarioReposiroty.save(nuevoRegistro);
+
+    return response;
   }
 
   async eliminarSuscripcion(idEvento: number, idUsuario: string) {
@@ -218,41 +252,93 @@ export class EventoUsuarioService {
         "e.titulo AS titulo",
         "e.fechaEvento AS fechaEvento",
         "e.horaInicio AS horaInicio",
+        "e.imagenUrl AS imgUrl",
         "e.horaFin AS horaFin",
         "eu.estado AS estado",
+        "eu.asistio AS asistio",
+        "eu.fechaEntrada AS fechaEntrada",
       ])
       .orderBy("e.fechaEvento", "ASC")
       .getRawMany();
+    console.log("Eventos obtenidos para el usuario:", eventos);
 
-    const hoy = new Date();
+    const ahora = new Date();
+    console.log("ISO:", ahora.toISOString());
+    console.log("Local:", ahora.toString());
+    console.log("Locale:", ahora.toLocaleString());
+    console.log("Fecha y hora actual:", ahora);
 
     const proximos: any[] = [];
     const historial: any[] = [];
 
     for (const evento of eventos) {
-      const fechaEvento = new Date(evento.fechaEvento);
-
+      const inicioEvento = new Date(evento.HORAINICIO);
+      console.log(inicioEvento);
       if (
-        fechaEvento >= hoy &&
-        evento.estado === EstadoEventoUsuario.SUSCRITO
+        inicioEvento >= ahora &&
+        evento.ESTADO === EstadoEventoUsuario.SUSCRITO
       ) {
-        proximos.push(evento);
+        const tiempoRestante = this.calcularTiempoRestante(inicioEvento);
+        console.log("Tiempo restante para el evento:", tiempoRestante);
+        proximos.push({
+          ...this.mapToHistorialEventosXUsuarioDto(evento),
+          tiempoRestante,
+        });
       } else {
+        let estadoTexto = "Cancelado";
+
+        if (evento.ASISTIO === "S") {
+          estadoTexto = "Asistió";
+        } else if (evento.ESTADO === EstadoEventoUsuario.NO_ASISTIO) {
+          estadoTexto = "No asistió";
+        }
+
         historial.push({
-          ...evento,
-          estadoTexto:
-            evento.estado === EstadoEventoUsuario.ASISTIO
-              ? "Asistió"
-              : evento.estado === EstadoEventoUsuario.NO_ASISTIO
-                ? "No asistió"
-                : "Cancelado",
+          ...this.mapToHistorialEventosXUsuarioDto(evento),
+          estadoTexto,
         });
       }
-
-      return {
-        proximos,
-        historial,
-      };
     }
+
+    return {
+      proximos,
+      historial,
+    };
   }
+
+  private calcularTiempoRestante = (fechaEvento: Date): string => {
+    const ahora = new Date();
+    const diffMs = fechaEvento.getTime() - ahora.getTime();
+
+    if (diffMs <= 0) return "Ahora";
+
+    // Comparar por fecha de calendario (sin hora)
+    const hoyCalendario = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth(),
+      ahora.getDate(),
+    );
+    const eventoCalendario = new Date(
+      fechaEvento.getFullYear(),
+      fechaEvento.getMonth(),
+      fechaEvento.getDate(),
+    );
+    const diasCalendario = Math.round(
+      (eventoCalendario.getTime() - hoyCalendario.getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
+
+    if (diasCalendario > 1) return `En ${diasCalendario} días`;
+    if (diasCalendario === 1) return "Mañana";
+
+    // Solo si es hoy, calcular horas/minutos
+    const horas = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutos = Math.floor(diffMs / (1000 * 60));
+
+    if (horas > 1) return `En ${horas} horas`;
+    if (horas === 1) return "En 1 hora";
+    if (minutos > 1) return `En ${minutos} minutos`;
+
+    return "En breve";
+  };
 }

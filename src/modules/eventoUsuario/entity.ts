@@ -19,6 +19,19 @@ export class EventosUsuarios {
   })
   fechaRegistro: Date | null;
 
+  @Column("varchar2", { name: "QR_TOKEN", nullable: true, length: 100 })
+  qrToken: string | null;
+
+  @Column("char", { name: "ASISTIO", nullable: true, length: 1 })
+  asistio: string | null;
+
+  @Column("date", {
+    name: "FECHA_ENTRADA",
+    nullable: true,
+    default: () => "SYSDATE",
+  })
+  fechaEntrada: Date | null;
+
   @Column("varchar2", { name: "OBSERVACION", nullable: true, length: 500 })
   observacion: string | null;
 

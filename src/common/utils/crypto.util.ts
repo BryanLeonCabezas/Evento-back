@@ -21,7 +21,22 @@ export const comparePassword = (password: string, storedHash: string) => {
 };
 
 export const generateQrHash = (qrToken: string) => {
- return crypto.createHmac("sha256", process.env.QR_SECRET!)
+  return crypto
+    .createHmac("sha256", process.env.QR_SECRET!)
     .update(qrToken)
     .digest("hex");
-}
+};
+
+export const generarCodigoQR = (prefijo = "TCK") => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const length = 8;
+
+  let token = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    token += chars[randomIndex];
+  }
+
+  return `${prefijo}-${token.slice(0, 4)}-${token.slice(4)}`;
+};

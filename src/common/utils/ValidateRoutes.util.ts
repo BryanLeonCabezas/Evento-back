@@ -14,7 +14,11 @@ export const notEmpty = (valor: any, field: string) => {
 // --------------------------------------
 // REQUIRED
 // --------------------------------------
-export const required = (valor: any, field: string, location?: "query" | "body" | "params") => {
+export const required = (
+  valor: any,
+  field: string,
+  location?: "query" | "body" | "params",
+) => {
   if (valor === undefined || valor === null) {
     throw messages.required(field);
   }
@@ -73,7 +77,11 @@ export const isBooleanValue = (valor: any, field: string) => {
 // --------------------------------------
 // NUMBER
 // --------------------------------------
-export const isNumberValue = (valor: any, field: string, location?: "query" | "params") => {
+export const isNumberValue = (
+  valor: any,
+  field: string,
+  location?: "query" | "params",
+) => {
   if (location) valor = Number(valor);
 
   if (
@@ -90,7 +98,11 @@ export const isNumberValue = (valor: any, field: string, location?: "query" | "p
 // --------------------------------------
 // NUMBER COMPARATORS
 // --------------------------------------
-export const numberGreaterThan = (valor: number, min: number, field: string) => {
+export const numberGreaterThan = (
+  valor: number,
+  min: number,
+  field: string,
+) => {
   if (valor <= min) {
     throw messages.numberGreaterThan(field, min);
   }
@@ -105,7 +117,12 @@ export const numberLessThan = (valor: number, max: number, field: string) => {
 // --------------------------------------
 // LENGTH STRING
 // --------------------------------------
-export const lengthString = (valor: string, min: number, max: number, field: string) => {
+export const lengthString = (
+  valor: string,
+  min: number,
+  max: number,
+  field: string,
+) => {
   if (min === max && valor.length !== min) {
     throw messages.exactLength(field, min);
   }
@@ -126,8 +143,8 @@ export const isOneWord = (valor: string, field: string) => {
 // OPTION VALIDATION
 // --------------------------------------
 export const isContains = (lista: any[], valor: any, field: string) => {
-  const normalized = lista.map(x =>
-    typeof x === "string" ? x.toUpperCase() : x
+  const normalized = lista.map((x) =>
+    typeof x === "string" ? x.toUpperCase() : x,
   );
 
   if (typeof valor === "string") valor = valor.toUpperCase();
@@ -140,7 +157,12 @@ export const isContains = (lista: any[], valor: any, field: string) => {
 // --------------------------------------
 // OBJECT KEYS
 // --------------------------------------
-export const hasObjectKey = (obj: object, field: string, keys: string[], extra: boolean = false) => {
+export const hasObjectKey = (
+  obj: object,
+  field: string,
+  keys: string[],
+  extra: boolean = false,
+) => {
   if (typeof obj !== "object" || Array.isArray(obj) || obj === null) {
     throw messages.invalidType(field, "object");
   }
@@ -167,7 +189,10 @@ export const hasObjectKey = (obj: object, field: string, keys: string[], extra: 
 // --------------------------------------
 // VALIDAR CÓDIGO EMPRESA EN BD
 // --------------------------------------
-export const isValidCodigoEmpresa = async (em: EntityManager, valor: number) => {
+export const isValidCodigoEmpresa = async (
+  em: EntityManager,
+  valor: number,
+) => {
   const count = await em
     .createQueryBuilder("emp", "e")
     .where("e.codigoEmpresa = :valor", { valor })
@@ -186,3 +211,32 @@ export const PaymentezBrandNombre: Record<PaymentezBrand, string> = {
   [PaymentezBrand.DISCOVER]: "Discover",
   [PaymentezBrand.MAESTRO]: "Maestro",
 };
+
+export const parseFechaLocal: any = (fecha: string) => {
+  const [datePart, timePart] = fecha.split(" ");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute, second] = timePart.split(":").map(Number);
+
+  return new Date(year, month - 1, day, hour, minute, second);
+};
+
+export const formatTime = (value: any): string => {
+  console.log("Valor original:", value);
+  if (!value) return "";
+
+  const d = new Date(value);
+
+  const hh = d.getHours().toString().padStart(2, "0");
+  const mm = d.getMinutes().toString().padStart(2, "0");
+
+  return `${hh}:${mm}`;
+};
+
+export const  formatLocalDate :any = (d?: Date) =>{
+  if (!d) return null;
+  const local = new Date(d); // Date ya ajusta a zona local
+  const year = local.getFullYear();
+  const month = String(local.getMonth() + 1).padStart(2, "0"); // meses 0-11
+  const day = String(local.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

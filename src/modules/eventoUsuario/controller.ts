@@ -41,7 +41,7 @@ export class EventoUsuariosController {
   obtenerEventosXUsuario = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
     const eventos =
-      await this.eventoUsuarioService.obtenerEventosSuscritosXUsuario(
+      await this.eventoUsuarioService.obtenerEventosUsuario(
         idUsuario
       );
     res.status(200).json(eventos);

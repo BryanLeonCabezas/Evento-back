@@ -7,7 +7,8 @@ export class EventosQueries {
     qb: SelectQueryBuilder<Eventos>,
     idCliente: string,
   ) {
-    return qb
+
+    const query = qb
       .leftJoin("e.idSalon", "s")
       .leftJoin("s.idLocal", "l")
       .leftJoin("l.idInstitucion", "i")
@@ -51,6 +52,14 @@ export class EventosQueries {
         "ss.idSubsalon",
         "ss.nombre",
       ]);
+
+    query
+      .leftJoin("e.eventosUsuarios", "eu", "eu.idCliente = :idCliente", {
+        idCliente,
+      })
+      .addSelect(["eu.idEventoUsuario", "eu.fechaRegistro"]);
+
+      return query;
   }
 
   static proximos(qb: SelectQueryBuilder<Eventos>) {

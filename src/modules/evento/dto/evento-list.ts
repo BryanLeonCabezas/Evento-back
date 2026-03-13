@@ -36,4 +36,7 @@ export interface EventoListDto {
     direccion: string | null;
     ciudad: string | null;
   };
+  adquirido: boolean;
+  fechaCompra?: string | null;
+  QR?: string | null;
 }

@@ -6,31 +6,22 @@ import { institucionRepository } from "../instituciones/repository.js";
 import { EventosPorInstitucionDto } from "./dto/eventoPorInstitucion.js";
 import { EventosQueries } from "./querys.js";
 import { log } from "node:console";
+import { formatLocalDate, formatTime } from "../../common/utils/ValidateRoutes.util.js";
 
 export class EventoService {
   private eventoRepository = eventoRepository;
   private institucionRepository = institucionRepository;
 
-  private formatTime(value: any): string {
-    console.log("Valor original:", value);
-    if (!value) return "";
 
-    const d = new Date(value);
-
-    const hh = d.getHours().toString().padStart(2, "0");
-    const mm = d.getMinutes().toString().padStart(2, "0");
-
-    return `${hh}:${mm}`;
-  }
 
   private mapToEventoListDto(evento: any): EventoListDto {
     return {
       idEvento: evento.idEvento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fechaEvento: evento.fechaEvento,
-      horaInicio: this.formatTime(evento.horaInicio),
-      horaFin: this.formatTime(evento.horaFin),
+      fechaEvento: formatLocalDate(evento.fechaEvento),
+      horaInicio: formatTime(evento.horaInicio),
+      horaFin: formatTime(evento.horaFin),
       imagenUrl: evento.imagenUrl,
       precio: evento.precio,
       destacado: evento.destacado,
@@ -38,7 +29,7 @@ export class EventoService {
       publicoEsperado: evento.publicoEsperado,
       tiempoSetupMin: evento.tiempoSetupMin,
       tiempoCleanMin: evento.tiempoCleanMin,
-      fechaRegistro: evento.fechaRegistro,
+      fechaRegistro: formatLocalDate(evento.fechaRegistro),
 
       salon: {
         idSalon: evento.idSalon.idSalon,
@@ -56,6 +47,9 @@ export class EventoService {
         ubicacion: evento.idSalon.idLocal.ubicacion,
         descripcion: evento.idSalon.idLocal.descripcion,
       },
+      adquirido: !!evento.eventosUsuarios?.length,
+      fechaCompra: evento.eventosUsuarios?.[0]?.fechaRegistro,
+      QR: evento.eventosUsuarios?.[0]?.qrToken,
     };
   }
 
@@ -146,7 +140,7 @@ export class EventoService {
     )
       .take(5)
       .getMany();
-    
+    console.log("Próximos eventos:", proximos);
     const destacadosQb = this.eventoRepository.createQueryBuilder("e");
     const destacados = await EventosQueries.destacados(
       EventosQueries.baseEventosUsuario(destacadosQb, idCliente),
@@ -209,7 +203,7 @@ export class EventoService {
     .leftJoinAndSelect("l.idInstitucion", "i")
     .leftJoinAndSelect("e.idSubsalon", "ss");
 
-  // 👇 join para saber si el usuario compró el evento
+
   if (idCliente) {
     qb.leftJoinAndSelect(
       "e.eventosUsuarios",
@@ -232,10 +226,11 @@ export class EventoService {
   return {
     ...dto,
 
-    // 👇 si existe registro en eventosUsuarios significa que lo compró
     adquirido: !!evento.eventosUsuarios?.length,
 
     fechaCompra: evento.eventosUsuarios?.[0]?.fechaRegistro ?? null,
+
+    QR: evento.eventosUsuarios?.[0]?.qrToken ?? null,
 
     institucion: institucion
       ? {
