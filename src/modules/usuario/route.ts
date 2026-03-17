@@ -16,5 +16,9 @@ router.put(
   validateSchema(editUserSchema),
   usuarioController.editarUsuario
 );
+router.post(
+  "/:idCliente/password",
+  usuarioController.actualizarPassword
+);
 
 export default router;

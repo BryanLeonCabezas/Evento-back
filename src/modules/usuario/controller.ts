@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { UsuarioService } from "./service.js";
+import { UpdatePasswordDto } from "./dto.js";
 
 export class UsuarioController {
-  constructor(private usuarioService: UsuarioService) {}
+  constructor(private usuarioService: UsuarioService) { }
 
   listarUsuarios = async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
@@ -31,4 +32,11 @@ export class UsuarioController {
     const usuario = await this.usuarioService.editarUsuario(idCliente, datos);
     res.status(200).json(usuario);
   };
+
+  actualizarPassword = async (req: Request, res: Response) => {
+    const idCliente = req.params.idCliente;
+    const dto: UpdatePasswordDto = req.body;
+    const result = await this.usuarioService.actualizarPassword(idCliente, dto);
+    res.status(200).json(result);
+  }
 }
