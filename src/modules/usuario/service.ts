@@ -1,3 +1,4 @@
+import { tr } from "zod/locales";
 import { AppError } from "../../common/utils/App.error.js";
 import { comparePassword, hashPassword } from "../../common/utils/crypto.util.js";
 import { UpdateUsuarioDto } from "../auth/dtos/updateUsuario.dto.js";
@@ -64,7 +65,7 @@ export class UsuarioService {
       message: usuario.claveHash
         ? "Contraseña actualizada correctamente"
         : "Contraseña creada correctamente",
-      hashPassword: usuario.claveHash,
+      hasPassword: usuario.claveHash ? true : false,
     };
 
   }

@@ -12,6 +12,6 @@ const eventosController = new EventoController(eventoService);
 router.get("/usuario/:idCliente", asyncWrapper(eventosController.getEventos));
 router.get("/inicio/:idCliente", asyncWrapper(eventosController.getHomeEventos)); 
 router.get("/:id/usuario/:idCliente", asyncWrapper(eventosController.getEventoById));
-
+router.get("/filtrados/:idCliente", asyncWrapper(eventosController.getEventosFiltrados));
 
 export default router;

@@ -7,7 +7,6 @@ export class EventosQueries {
     qb: SelectQueryBuilder<Eventos>,
     idCliente: string,
   ) {
-
     const query = qb
       .leftJoin("e.idSalon", "s")
       .leftJoin("s.idLocal", "l")
@@ -59,20 +58,23 @@ export class EventosQueries {
       })
       .addSelect(["eu.idEventoUsuario", "eu.fechaRegistro"]);
 
-      return query;
+    return query;
   }
 
   static proximos(qb: SelectQueryBuilder<Eventos>) {
-    return qb
-      .andWhere("e.fechaEvento >= CURRENT_DATE")
-      .orderBy("e.fechaEvento", "ASC");
+    return qb.andWhere("e.horaFin >= SYSDATE").orderBy("e.horaInicio", "ASC");
   }
 
   static destacados(qb: SelectQueryBuilder<Eventos>) {
-    return qb.andWhere("e.destacado = 1").orderBy("e.ordenDestacado", "ASC");
+    return qb
+      .andWhere("e.destacado = 1")
+      .andWhere("e.horaFin >SYSDATE")
+      .orderBy("e.ordenDestacado", "ASC");
   }
 
   static populares(qb: SelectQueryBuilder<Eventos>) {
-    return qb.orderBy("e.publicoEsperado", "DESC");
+    return qb
+      .andWhere("e.horaFin > SYSDATE")
+      .orderBy("e.publicoEsperado", "DESC");
   }
 }

@@ -75,7 +75,7 @@ export class PaymentezProvider implements PaymentProvider {
       {
         user: {
           id: data.userId,
-          email: data.email
+          email: data.email,
         },
         order: {
           amount: data.amount,
@@ -88,6 +88,36 @@ export class PaymentezProvider implements PaymentProvider {
           token: data.cardToken,
         },
       },
+      { headers: this.getHeaders() },
+    );
+
+    return response.data;
+  }
+
+  async refund(data: {
+    transactionId: string;
+    amount?: number;
+    moreInfo?: boolean;
+  }) {
+    const body: any = {
+      transaction: {
+        id: data.transactionId,
+      },
+    };
+
+    if (data.amount !== undefined) {
+      body.order = {
+        amount: parseFloat(data.amount.toFixed(2)),
+      };
+    }
+
+    if (data.moreInfo !== undefined) {
+      body.more_info = data.moreInfo;
+    }
+
+    const response = await axios.post(
+      `${this.baseUrl}/v2/transaction/refund/`,
+      body,
       { headers: this.getHeaders() },
     );
 

@@ -20,6 +20,9 @@ import {
   formatTime,
 } from "../../common/utils/ValidateRoutes.util.js";
 import { generarCodigoQR } from "../../common/utils/crypto.util.js";
+import { ca } from "zod/locales";
+import { EventosUsuarios } from "./entity.js";
+import { Brackets } from "typeorm";
 
 export class EventoUsuarioService {
   private eventoUsuarioReposiroty = eventoUsuarioReposiroty;
@@ -39,7 +42,6 @@ export class EventoUsuarioService {
     };
   }
 
-  @Transactional()
   async suscribirUsuario(
     idEvento: number,
     idUsuario: string,
@@ -47,125 +49,165 @@ export class EventoUsuarioService {
     observacion?: string,
     idTarjeta?: number,
   ) {
-    console.log("ID Evento:", idEvento);
-    console.log("ID Usuario:", idUsuario);
-    console.log("Observación:", observacion);
-    console.log("ID Tarjeta:", idTarjeta);
-    const [
-      evento,
-      precioEvento,
-      publicoEsperado,
-      inscritosAlEvento,
-      tarjetaUsuario,
-      usuario,
-      usuarioInscrito,
-    ] = await Promise.all([
-      obtenerEvento(this.eventoUsuarioReposiroty, idEvento),
-      obtenerPrecioEvento(this.eventoUsuarioReposiroty, idEvento),
-      obtenerPublicoEsperado(this.eventoUsuarioReposiroty, idEvento),
-      contarInscritos(this.eventoUsuarioReposiroty, idEvento),
-      obtenerTarjetaUsuario(this.eventoUsuarioReposiroty, idTarjeta, idUsuario),
-      obtenerUsuario(this.eventoUsuarioReposiroty, idUsuario),
-      usuarioYaInscrito(this.eventoUsuarioReposiroty, idEvento, idUsuario),
-    ]);
-    let transaccion: any = null;
-    console.log("Usuario encontrado:", usuario);
-    if (!evento) {
-      throw new AppError("Evento no encontrado", 404);
-    }
-    console.log("Evento encontrado:", precioEvento);
-    console.log("Precio del evento:", precioEvento);
-    console.log("Público esperado para el evento:", publicoEsperado);
-    console.log("Número de inscritos al evento:", inscritosAlEvento);
-    console.log("Tarjeta del usuario para el evento:", tarjetaUsuario);
-    console.log("¿El usuario ya está inscrito en el evento?", usuarioInscrito);
+    const manager = this.eventoUsuarioReposiroty.manager;
+    return await this.eventoUsuarioReposiroty.manager.transaction(
+      async (manager) => {
+        const [
+          evento,
 
-    if (usuarioInscrito) {
-      throw new AppError("El usuario ya está suscrito a este evento", 400);
-    }
-    if (
-      precioEvento.PRECIO > 0 &&
-      (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
-    ) {
-      throw new AppError("El evento requiere un método de pago válido", 400);
-    }
+          publicoEsperado,
+          inscritosAlEvento,
+          tarjetaUsuario,
+          usuario,
+          usuarioInscrito,
+        ] = await Promise.all([
+          obtenerEvento(manager, idEvento),
 
-    if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO) {
-      throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
-    }
-
-    if (precioEvento.PRECIO > 0) {
-      const dataDebit = {
-        userId: idUsuario,
-        cardToken: tarjetaUsuario.TOKEN,
-        amount: precioEvento.PRECIO,
-        description: `Pago por inscripción al evento ${evento.TITULO}`,
-        email: usuario.EMAIL,
-      };
-
-      console.log("Datos para el débito:", dataDebit);
-
-      const responsePago = await this.paymentezProvider.debit(dataDebit);
-
-      transaccion = responsePago?.transaction;
-
-      console.log("Respuesta de Paymentez:", responsePago);
-      if (!transaccion || transaccion.status_detail !== 3) {
-        throw new AppError(
-          "No se pudo procesar el pago. Verifica tu método de pago.",
-          400,
+          obtenerPublicoEsperado(manager, idEvento),
+          contarInscritos(manager, idEvento),
+          obtenerTarjetaUsuario(manager, idTarjeta, idUsuario),
+          obtenerUsuario(manager, idUsuario),
+          usuarioYaInscrito(manager, idEvento, idUsuario),
+        ]);
+        let transaccion: any = null;
+        const precioEvento = evento.PRECIO;
+        console.log("Usuario encontrado:", usuario);
+        console.log("Evento encontrado:", evento);
+        console.log("Precio del evento:", precioEvento);
+        console.log("Público esperado para el evento:", publicoEsperado);
+        console.log("Número de inscritos al evento:", inscritosAlEvento);
+        console.log("Tarjeta del usuario para el evento:", tarjetaUsuario);
+        console.log(
+          "¿El usuario ya está inscrito en el evento?",
+          usuarioInscrito,
         );
-      }
-    }
+        if (!evento) {
+          throw new AppError("Evento no encontrado", 404);
+        }
+        console.log("Evento encontrado:", precioEvento);
+        console.log("Precio del evento:", precioEvento);
+        console.log("Público esperado para el evento:", publicoEsperado);
+        console.log("Número de inscritos al evento:", inscritosAlEvento);
+        console.log("Tarjeta del usuario para el evento:", tarjetaUsuario);
+        console.log(
+          "¿El usuario ya está inscrito en el evento?",
+          usuarioInscrito,
+        );
 
-    const nuevoRegistro = this.eventoUsuarioReposiroty.create({
-      idEvento: { idEvento },
-      idCliente: { idCliente: idUsuario },
-      estado: EstadoEventoUsuario.SUSCRITO,
-      observacion,
-      qrToken: generarCodigoQR("TCK"),
-    });
+        if (usuarioInscrito) {
+          throw new AppError("El usuario ya está suscrito a este evento", 400);
+        }
+        if (
+          precioEvento > 0 &&
+          (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
+        ) {
+          throw new AppError(
+            "El evento requiere un método de pago válido",
+            400,
+          );
+        }
 
-    const transaccionId = transaccion?.id ?? null;
+        if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO) {
+          throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
+        }
 
-    const response = {
-      message:
-        precioEvento.PRECIO > 0
-          ? "Pago realizado e inscripción confirmada"
-          : "Inscripción confirmada (evento gratuito)",
-      data: {
-        idEvento,
-        nombreEvento: evento.TITULO,
-        transaccionId,
+        if (precioEvento > 0) {
+          const dataDebit = {
+            userId: idUsuario,
+            cardToken: tarjetaUsuario.TOKEN,
+            amount: precioEvento,
+            description: `Pago por inscripción al evento ${evento.TITULO}`,
+            email: usuario.EMAIL,
+          };
+
+          console.log("Datos para el débito:", dataDebit);
+
+          const responsePago = await this.paymentezProvider.debit(dataDebit);
+          console.log("Respuesta de Paymentez:", responsePago);
+          transaccion = responsePago?.transaction;
+
+          console.log("Respuesta de Paymentez:", responsePago);
+          if (!transaccion || transaccion.status_detail !== 3) {
+            throw new AppError(
+              "No se pudo procesar el pago. Verifica tu método de pago.",
+              400,
+            );
+          }
+        }
+
+        try {
+          const nuevoRegistro = manager.create(EventosUsuarios, {
+            idEvento: { idEvento },
+            idCliente: { idCliente: idUsuario },
+            estado: EstadoEventoUsuario.SUSCRITO,
+            observacion,
+            qrToken: generarCodigoQR("TCK"),
+          });
+
+          const transaccionId = transaccion?.id ?? null;
+
+          const response = {
+            message:
+              precioEvento > 0
+                ? "Pago realizado e inscripción confirmada"
+                : "Inscripción confirmada (evento gratuito)",
+            data: {
+              idEvento,
+              nombreEvento: evento.TITULO,
+              transaccionId,
+            },
+            success: true,
+          };
+
+          await manager.save(nuevoRegistro);
+
+          return response;
+        } catch (error) {
+          if (transaccion?.id) {
+            try {
+              await this.paymentezProvider.refund({
+                transactionId: transaccion.id,
+                amount: precioEvento,
+                moreInfo: true,
+              });
+              console.log(
+                "Reembolso exitoso para transacción:",
+                transaccion.id,
+              );
+            } catch (refundError) {
+              // CRÍTICO: el cobro se hizo pero el reembolso falló — requiere revisión manual
+              console.error(
+                "CRITICO: Reembolso fallido para transacción:",
+                transaccion.id,
+                refundError,
+              );
+            }
+          }
+
+          throw new AppError(
+            "Error al registrar la inscripción. Tu pago ha sido reembolsado.",
+            500,
+          );
+        }
       },
-      success: true,
-    };
-
-    await this.eventoUsuarioReposiroty.save(nuevoRegistro);
-
-    return response;
+    );
   }
 
   async eliminarSuscripcion(idEvento: number, idUsuario: string) {
-    const result = await this.eventoUsuarioReposiroty
-      .createQueryBuilder()
-      .update("EVENTOS_USUARIOS")
-      .set({
-        estado: "I",
-        observacion: "Usuario se desuscribió",
-      })
-      .where("ID_CLIENTE = :idCliente", { idCliente: idUsuario })
-      .andWhere("ID_EVENTO = :idEvento", { idEvento })
-      .andWhere("ESTADO = 'A'")
-      .execute();
+    const result = await this.eventoUsuarioReposiroty.manager
+    .createQueryBuilder()
+    .update("EVENTOS_USUARIOS")
+    .set({ estado: EstadoEventoUsuario.CANCELADO, observacion: "Usuario se desuscribió" }) 
+    .where("ID_CLIENTE = :idCliente", { idCliente: idUsuario })
+    .andWhere("ID_EVENTO = :idEvento", { idEvento })
+    .andWhere("ESTADO = :estado", { estado: EstadoEventoUsuario.SUSCRITO }) 
+    .execute();
 
-    if (result.affected === 0) {
-      throw new AppError("El usuario no esta suscripto al evento", 400);
-    }
+  if (result.affected === 0) {
+    throw new AppError("El usuario no está suscrito al evento", 400);
+  }
 
-    return {
-      message: "Usuario desuscripto correctamente",
-    };
+  return { message: "Usuario desuscrito correctamente" };
   }
 
   async obtenerUsuariosSuscritosXEvento(idEvento: number) {
@@ -186,17 +228,10 @@ export class EventoUsuarioService {
       ])
       .getRawMany();
 
-    if (!usuarios || usuarios.length === 0) {
-      return {
-        message: "No existen usuarios suscritos a este evento",
-        data: [],
-      };
-    }
-
     return {
-      total: usuarios.length,
-      data: usuarios,
-    };
+    total: usuarios.length,
+    data: usuarios,
+  };
   }
 
   async obtenerEventosSuscritosXUsuario(idUsuario: string) {
@@ -230,81 +265,73 @@ export class EventoUsuarioService {
     };
   }
 
-  async obtenerEventosUsuario(idUsuario: string) {
-    if (!idUsuario || idUsuario.trim() === "") {
-      throw new AppError("ID de usuario inválido", 400);
-    }
-
-    const eventos = await this.eventoUsuarioReposiroty
-      .createQueryBuilder("eu")
-      .innerJoin("eu.idEvento", "e")
-      .innerJoin("eu.idCliente", "u")
-      .where("u.idCliente = :idCliente", { idCliente: idUsuario })
-      .andWhere("eu.estado IN (:...estados)", {
-        estados: [
-          EstadoEventoUsuario.SUSCRITO,
-          EstadoEventoUsuario.ASISTIO,
-          EstadoEventoUsuario.NO_ASISTIO,
-        ],
-      })
-      .select([
-        "e.idEvento AS idEvento",
-        "e.titulo AS titulo",
-        "e.fechaEvento AS fechaEvento",
-        "e.horaInicio AS horaInicio",
-        "e.imagenUrl AS imgUrl",
-        "e.horaFin AS horaFin",
-        "eu.estado AS estado",
-        "eu.asistio AS asistio",
-        "eu.fechaEntrada AS fechaEntrada",
-      ])
-      .orderBy("e.fechaEvento", "ASC")
-      .getRawMany();
-    console.log("Eventos obtenidos para el usuario:", eventos);
-
-    const ahora = new Date();
-    console.log("ISO:", ahora.toISOString());
-    console.log("Local:", ahora.toString());
-    console.log("Locale:", ahora.toLocaleString());
-    console.log("Fecha y hora actual:", ahora);
-
-    const proximos: any[] = [];
-    const historial: any[] = [];
-
-    for (const evento of eventos) {
-      const inicioEvento = new Date(evento.HORAINICIO);
-      console.log(inicioEvento);
-      if (
-        inicioEvento >= ahora &&
-        evento.ESTADO === EstadoEventoUsuario.SUSCRITO
-      ) {
-        const tiempoRestante = this.calcularTiempoRestante(inicioEvento);
-        console.log("Tiempo restante para el evento:", tiempoRestante);
-        proximos.push({
-          ...this.mapToHistorialEventosXUsuarioDto(evento),
-          tiempoRestante,
-        });
-      } else {
-        let estadoTexto = "Cancelado";
-
-        if (evento.ASISTIO === "S") {
-          estadoTexto = "Asistió";
-        } else if (evento.ESTADO === EstadoEventoUsuario.NO_ASISTIO) {
-          estadoTexto = "No asistió";
-        }
-
-        historial.push({
-          ...this.mapToHistorialEventosXUsuarioDto(evento),
-          estadoTexto,
-        });
-      }
-    }
-
-    return {
-      proximos,
-      historial,
-    };
+ async obtenerEventosUsuario(idUsuario: string) {
+  if (!idUsuario || idUsuario.trim() === "") {
+    throw new AppError("ID de usuario inválido", 400);
   }
+
+  const ahora = new Date();
+
+  const proximos = await this.eventoUsuarioReposiroty
+    .createQueryBuilder("eu")
+    .innerJoin("eu.idEvento", "e")
+    .innerJoin("eu.idCliente", "u")
+    .where("u.idCliente = :idCliente", { idCliente: idUsuario })
+    .andWhere("eu.estado = :estado", { estado: EstadoEventoUsuario.SUSCRITO })
+    .andWhere("e.horaFin > SYSDATE")
+    .select([
+      "e.idEvento AS idEvento",
+      "e.titulo AS titulo",
+      "e.fechaEvento AS fechaEvento",
+      "e.horaInicio AS horaInicio",
+      "e.horaFin AS horaFin",
+      "e.imagenUrl AS imgUrl",
+      "eu.estado AS estado",
+    ])
+    .orderBy("e.horaInicio", "ASC")
+    .getRawMany();
+
+  const historial = await this.eventoUsuarioReposiroty
+    .createQueryBuilder("eu")
+    .innerJoin("eu.idEvento", "e")
+    .innerJoin("eu.idCliente", "u")
+    .where("u.idCliente = :idCliente", { idCliente: idUsuario })
+    .andWhere(
+      new Brackets((qb) => {
+        qb.where("eu.estado IN (:...estados)", {
+          estados: [EstadoEventoUsuario.ASISTIO, EstadoEventoUsuario.NO_ASISTIO, EstadoEventoUsuario.CANCELADO],
+        }).orWhere("eu.estado = :suscrito AND e.horaFin <= SYSDATE", {
+          suscrito: EstadoEventoUsuario.SUSCRITO,
+        });
+      })
+    )
+    .select([
+      "e.idEvento AS idEvento",
+      "e.titulo AS titulo",
+      "e.fechaEvento AS fechaEvento",
+      "e.horaInicio AS horaInicio",
+      "e.horaFin AS horaFin",
+      "e.imagenUrl AS imgUrl",
+      "eu.estado AS estado",
+      "eu.asistio AS asistio",
+    ])
+    .orderBy("e.horaInicio", "DESC")
+    .getRawMany();
+
+  return {
+    proximos: proximos.map((e) => ({
+      ...this.mapToHistorialEventosXUsuarioDto(e),
+      tiempoRestante: this.calcularTiempoRestante(new Date(e.HORAINICIO)),
+    })),
+    historial: historial.map((e) => ({
+      ...this.mapToHistorialEventosXUsuarioDto(e),
+      estadoTexto:
+        e.ASISTIO === true                            ? "Asistió"   :
+        e.ESTADO  === EstadoEventoUsuario.CANCELADO   ? "Cancelado" :
+                                                        "No asistió",
+    })),
+  };
+}
 
   private calcularTiempoRestante = (fechaEvento: Date): string => {
     const ahora = new Date();

@@ -40,4 +40,32 @@ export class EventoController {
 
     res.status(200).json(eventos);
   };
+
+  getEventosFiltrados = async (req: Request, res: Response) => {
+    const idCliente = req.params.idCliente as string;
+    const {
+      texto,
+      fechaInicio,
+      fechaFin,
+      idInstitucion,
+      soloDisponibles,
+      page,
+      limit,
+    } = req.query;
+    console.log("Filtros recibidos:", req.query);
+    const eventosFiltrados = await this.eventoService.getEventosFiltrados(
+      idCliente,
+      Number(page) || 1,
+      Number(limit) || 10,
+      {
+        texto: texto as string,
+        fechaInicio: fechaInicio as string,
+        fechaFin: fechaFin as string,
+        idInstitucion: idInstitucion ? Number(idInstitucion) : undefined,
+        soloDisponibles: soloDisponibles === "true",
+      },
+    );
+
+    res.status(200).json(eventosFiltrados);
+  };
 }

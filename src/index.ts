@@ -13,11 +13,13 @@ initializeTransactionalContext();
 const app = express();
 app.use(
   cors({
-    origin: [
-      "http://localhost:8100",
-      "http://localhost:4200",
-      "http://10.1.60.18:8100",
-    ], // Ionic / Angular
+    // origin: [
+    //   "http://localhost:8100",
+    //   "http://localhost:4200",
+    //   "http://10.1.60.18:8100",
+    //   "*"
+    // ], // Ionic / Angular
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -34,7 +36,7 @@ AppDataSource.initialize()
     // Puerto
     const PORT = 3000;
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
   })

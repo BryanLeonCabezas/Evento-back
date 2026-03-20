@@ -98,7 +98,7 @@ export class AuthService {
     const usuario = await this.repoUsuario.findOneBy({ email });
     if (!usuario) throw new AppError("El usuario no existe", 400);
 
-    if (usuario.tipoUsuario === TipoUsuarioEnum.GOOGLE)
+    if (usuario.tipoUsuario === TipoUsuarioEnum.GOOGLE && !usuario.claveHash)
       throw new AppError("El usuario no puede iniciar sesion", 400);
 
     const passwordCorrect = comparePassword(password, usuario.claveHash!);

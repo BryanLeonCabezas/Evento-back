@@ -23,4 +23,5 @@ export interface TarjetaUsuarioResponseDto {
   expYear: number;
   banco: string | null;
   predeterminado: boolean;
+  holderName: string | null;
 }

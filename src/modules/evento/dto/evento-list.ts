@@ -39,4 +39,5 @@ export interface EventoListDto {
   adquirido: boolean;
   fechaCompra?: string | null;
   QR?: string | null;
+  estaActivo: boolean;
 }
