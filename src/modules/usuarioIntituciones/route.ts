@@ -3,6 +3,7 @@ import { UsuarioInstitucionesService } from "./service.js";
 import { UsuarioInstitucionesController } from "./controller.js";
 import { validateSchema } from "../../middleware/validateSchema.js";
 import { VincularInstitucionSchema } from "../../schemas/usuarioInstitucion.schema.js";
+import { authMiddleware } from "../../middleware/auth.js";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ const usuariosInstitucionesController = new UsuarioInstitucionesController(
 
 router.post(
   "/vincular-usuario-institucion",
+  authMiddleware,
   validateSchema(VincularInstitucionSchema),
   usuariosInstitucionesController.registerUserPassword
 );

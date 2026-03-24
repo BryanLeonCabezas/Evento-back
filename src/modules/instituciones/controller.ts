@@ -5,6 +5,7 @@ export class InstitucionesController {
   constructor(private institucionService: InstitucionesService) {}
 
   listarInstituciones = async (req: Request, res: Response) => {
+    console.log('listarInstituciones llamado');
     const instituciones = await this.institucionService.listarInstituciones();
     res.status(200).json(instituciones);
   };

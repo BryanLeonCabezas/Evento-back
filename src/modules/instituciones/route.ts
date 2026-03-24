@@ -1,13 +1,19 @@
 import { Router } from "express";
 import { InstitucionesService } from "./service.js";
 import { InstitucionesController } from "./controller.js";
+import { authMiddleware } from "../../middleware/auth.js";
+import { asyncWrapper } from "../../common/utils/AsyncWrapper.js";
 
 const router = Router();
 
 const institucionService = new InstitucionesService();
 const institucionController = new InstitucionesController(institucionService);
 
-router.get("/", institucionController.listarInstituciones);
-router.get("/:idInstitucion", institucionController.obtenerInstitucionById);
+router.get("/", authMiddleware, asyncWrapper(institucionController.listarInstituciones));
+router.get(
+  "/:idInstitucion",
+  authMiddleware,
+  asyncWrapper(institucionController.obtenerInstitucionById),
+);
 
 export default router;

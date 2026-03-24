@@ -12,12 +12,11 @@ import { TarjetasUsuario } from "./modules/tarjetaUsuario/entity.js";
 import { EntradasEvento } from "./modules/entradaEvento/entity.js";
 export const AppDataSource = new DataSource({
   type: "oracle",
-  host: "154.38.187.235",
-  port: 1521,
-  username: "CONNECT_HUB",
-  password: "Dentry2025",
-  //database: "postgres",
-  serviceName: "XEPDB1",
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  serviceName: process.env.DB_SERVICE,
   synchronize: false,
   logging: false,
   entities: [
@@ -30,6 +29,6 @@ export const AppDataSource = new DataSource({
     Locales,
     UsuarioInstituciones,
     TarjetasUsuario,
-    EntradasEvento
+    EntradasEvento,
   ],
 });

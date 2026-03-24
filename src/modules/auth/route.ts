@@ -36,4 +36,6 @@ router.post(
 
 router.get("/me/:idCliente",validateParamsSchema(logoutSchema), asyncWrapper(authController.obtenerUsuarioAutenticado));
 
+router.post("/refresh", asyncWrapper(authController.refresh));
+
 export default router;

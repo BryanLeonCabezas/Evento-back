@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { EventoUsuarioService } from "./service.js";
 import { EventoUsuariosController } from "./controller.js";
+import { auth } from "google-auth-library";
+import { authMiddleware } from "../../middleware/auth.js";
 
 const router = Router();
 
@@ -11,19 +13,23 @@ const eventoUsuarioController = new EventoUsuariosController(
 
 router.post(
   "/eventos/:idEvento/usuarios/:idUsuario",
+  authMiddleware,
   eventoUsuarioController.suscribirUsuario
 );
 router.delete(
   "/eventos/:idEvento/usuarios/:idUsuario",
+  authMiddleware, 
   eventoUsuarioController.eliminarSuscripcion
 );
 
 router.get(
   "/eventos/:idEvento/usuarios",
+  authMiddleware,
   eventoUsuarioController.obtenerUsuariosSuscritosXEvento
 );
 router.get(
   "/usuarios/:idUsuario/eventos",
+  authMiddleware,
   eventoUsuarioController.obtenerEventosXUsuario
 );
 

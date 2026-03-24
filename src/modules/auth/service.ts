@@ -32,6 +32,7 @@ export class AuthService {
       tipoUsuario: usuario.tipoUsuario,
     };
   }
+
   async authGoogle(dtoUsuarioGoogle: CrearUsuarioGoogleDto) {
     const usuarioGoogle = await validarIdTokenGoogle(
       dtoUsuarioGoogle.idToken!,
@@ -130,6 +131,8 @@ export class AuthService {
     };
   }
 
+
+
   async logout(idCliente: string) {
     console.log("Logout", idCliente);
 
@@ -146,6 +149,52 @@ export class AuthService {
       message: "Logout exitoso",
     };
   }
+
+  async refreshToken(refreshToken: string) {
+  if (!refreshToken) {
+    throw new AppError("Refresh token requerido", 400);
+  } 
+  console.log("Refresh token recibido:", refreshToken);
+
+  let decoded: any;
+
+  try {
+    decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+    console.log("Refresh token verificado:", decoded);
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") {
+      throw new AppError("Refresh token expirado", 401);
+    }
+    throw new AppError("Refresh token inválido", 401);
+  }
+
+  // Validar que el token exista en DB
+  const usuario = await this.repoUsuario.findOneBy({
+    idCliente: decoded.idCliente,
+    refreshToken: refreshToken,
+  });
+
+  if (!usuario) {
+    throw new AppError("Sesión inválida", 401);
+  }
+
+  // Generar nuevos tokens
+  const { accessToken, refreshToken: newRefreshToken } =
+    this.generateTokens({
+      idCliente: usuario.idCliente,
+      email: usuario.email,
+      tipoUsuario: usuario.tipoUsuario,
+    });
+
+  // Rotar refresh token
+  usuario.refreshToken = newRefreshToken;
+  await this.repoUsuario.save(usuario);
+
+  return {
+    token: accessToken,
+    refreshToken: newRefreshToken,
+  };
+}
 
   async obtenerInfoUsuarioAutenticado(idCliente: string) {
     const usuario = await this.repoUsuario.findOne({
