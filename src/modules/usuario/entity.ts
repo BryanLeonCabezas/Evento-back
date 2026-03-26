@@ -45,6 +45,28 @@ export class Usuarios {
   })
   tipoUsuario: string | null;
 
+  @Column("varchar2", {
+    name: "VERIFICATION_TOKEN",
+    nullable: true,
+    length: 500,
+  })
+  verificationToken: string | null;
+
+  // 🔐 NUEVO: si está verificado o no
+  @Column("number", {
+    name: "IS_VERIFIED",
+    nullable: false,
+    default: () => "0",
+  })
+  isVerified: number; // 0 = no, 1 = sí
+
+  // 🔐 NUEVO: expiración del token
+  @Column("timestamp", {
+    name: "TOKEN_EXPIRA",
+    nullable: true,
+  })
+  tokenExpira: Date | null;
+
   @Column("timestamp", {
     name: "FECHA_CREACION",
     nullable: true,

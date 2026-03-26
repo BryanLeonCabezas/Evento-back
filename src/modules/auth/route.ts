@@ -38,4 +38,6 @@ router.get("/me/:idCliente",validateParamsSchema(logoutSchema), asyncWrapper(aut
 
 router.post("/refresh", asyncWrapper(authController.refresh));
 
+router.get("/auth/verify", asyncWrapper(authController.verifyAccount));
+
 export default router;

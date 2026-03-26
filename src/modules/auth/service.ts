@@ -1,10 +1,14 @@
 import { TipoUsuarioEnum } from "../../common/enums/TipoUsuario.enum.js";
+import { verificadoEnum } from "../../common/enums/verificado.enum copy.js";
 import { AppError } from "../../common/utils/App.error.js";
 import {
   comparePassword,
+  generateVerificationToken,
   hashPassword,
+  hashToken,
 } from "../../common/utils/crypto.util.js";
 import { validarIdTokenGoogle } from "../../common/utils/validarIdToken.util.js";
+import { sendVerificationEmail } from "../../services/external/correo.js";
 import { UsuarioRepository } from "../usuario/repository.js";
 import { CrearUsuarioDto } from "./CrearUsuario.dto.js";
 import { CrearUsuarioGoogleDto } from "./dtos/CrearUsuarioGoogle.dto.js";
@@ -16,19 +20,72 @@ export class AuthService {
     let usuario;
 
     const exist = await this.repoUsuario.findOneBy({ email: dtoUsuario.email });
-    if (exist) throw new AppError("El correo ya se encuentra registrado", 400);
 
+    if (
+      exist &&
+      exist.isVerified &&
+      exist.isVerified === verificadoEnum.NO_VERIFICADO
+    ) {
+      const { token, hashedToken } = generateVerificationToken();
+
+      exist.verificationToken = hashedToken;
+      exist.tokenExpira = new Date(Date.now() + 1000 * 60 * 60 * 24);
+
+      await this.repoUsuario.save(exist);
+
+      try {
+        await sendVerificationEmail({
+          correo: exist.email,
+          nombre: exist.nombre!,
+          linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${exist.idCliente}`,
+        });
+      } catch (e) {
+        console.error("Error reenviando correo:", e);
+      }
+
+      return {
+        message:
+          "Tu cuenta aún no está verificada. Te enviamos un nuevo enlace de verificación.",
+      };
+    }
+
+    if (
+      exist &&
+      exist.isVerified &&
+      exist.isVerified === verificadoEnum.VERIFICADO
+    )
+      throw new AppError("El correo ya se encuentra registrado", 400);
+
+    const fechaNacimiento = dtoUsuario.fechaNacimiento
+      ? dtoUsuario.fechaNacimiento.split("T")[0]
+      : null;
+
+    const { token, hashedToken } = generateVerificationToken();
     usuario = this.repoUsuario.create({
       ...dtoUsuario,
+      fechaNacimiento,
       idCliente: crypto.randomUUID(),
       claveHash: hashPassword(dtoUsuario.claveHash!),
       tipoUsuario: TipoUsuarioEnum.NORMAL,
+
+      verificationToken: hashedToken,
+      isVerified: 0, // No verificado hasta que confirme su correo
+      tokenExpira: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
+    console.log("Usuario a registrar:", usuario);
 
     await this.repoUsuario.save(usuario);
 
+    //Envio de correo de verificacion
+    await sendVerificationEmail({
+      correo: usuario.email,
+      nombre: usuario.nombre!,
+      linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
+    });
+
     return {
-      message: "Usuario creado con éxito",
+      message:
+        "Usuario creado correctamente. Revisa tu correo electrónico para verificar tu cuenta antes de iniciar sesión.",
       tipoUsuario: usuario.tipoUsuario,
     };
   }
@@ -36,7 +93,7 @@ export class AuthService {
   async authGoogle(dtoUsuarioGoogle: CrearUsuarioGoogleDto) {
     const usuarioGoogle = await validarIdTokenGoogle(
       dtoUsuarioGoogle.idToken!,
-      dtoUsuarioGoogle.accessToken!
+      dtoUsuarioGoogle.accessToken!,
     );
     //console.log(usuarioGoogle);
 
@@ -131,8 +188,6 @@ export class AuthService {
     };
   }
 
-
-
   async logout(idCliente: string) {
     console.log("Logout", idCliente);
 
@@ -151,50 +206,49 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
-  if (!refreshToken) {
-    throw new AppError("Refresh token requerido", 400);
-  } 
-  console.log("Refresh token recibido:", refreshToken);
-
-  let decoded: any;
-
-  try {
-    decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
-    console.log("Refresh token verificado:", decoded);
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
-      throw new AppError("Refresh token expirado", 401);
+    if (!refreshToken) {
+      throw new AppError("Refresh token requerido", 400);
     }
-    throw new AppError("Refresh token inválido", 401);
-  }
+    console.log("Refresh token recibido:", refreshToken);
 
-  // Validar que el token exista en DB
-  const usuario = await this.repoUsuario.findOneBy({
-    idCliente: decoded.idCliente,
-    refreshToken: refreshToken,
-  });
+    let decoded: any;
 
-  if (!usuario) {
-    throw new AppError("Sesión inválida", 401);
-  }
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+      console.log("Refresh token verificado:", decoded);
+    } catch (err: any) {
+      if (err.name === "TokenExpiredError") {
+        throw new AppError("Refresh token expirado", 401);
+      }
+      throw new AppError("Refresh token inválido", 401);
+    }
 
-  // Generar nuevos tokens
-  const { accessToken, refreshToken: newRefreshToken } =
-    this.generateTokens({
+    // Validar que el token exista en DB
+    const usuario = await this.repoUsuario.findOneBy({
+      idCliente: decoded.idCliente,
+      refreshToken: refreshToken,
+    });
+
+    if (!usuario) {
+      throw new AppError("Sesión inválida", 401);
+    }
+
+    // Generar nuevos tokens
+    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
       idCliente: usuario.idCliente,
       email: usuario.email,
       tipoUsuario: usuario.tipoUsuario,
     });
 
-  // Rotar refresh token
-  usuario.refreshToken = newRefreshToken;
-  await this.repoUsuario.save(usuario);
+    // Rotar refresh token
+    usuario.refreshToken = newRefreshToken;
+    await this.repoUsuario.save(usuario);
 
-  return {
-    token: accessToken,
-    refreshToken: newRefreshToken,
-  };
-}
+    return {
+      token: accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
 
   async obtenerInfoUsuarioAutenticado(idCliente: string) {
     const usuario = await this.repoUsuario.findOne({
@@ -207,6 +261,50 @@ export class AuthService {
 
     return usuario;
   }
+
+  async verifyAccount(token: string, idCliente?: string) {
+  if (!token) {
+    throw new AppError("Token requerido", 400);
+  }
+
+  // Hashear token recibido
+  const hashedToken = hashToken(token);
+
+  // Buscar usuario
+  const usuario = await this.repoUsuario.findOne({
+    where: {
+      verificationToken: hashedToken,
+      ...(idCliente && { idCliente }),
+    },
+  });
+
+  if (!usuario) {
+    throw new AppError("Token inválido o usuario no encontrado", 400);
+  }
+
+  // Ya verificado
+  if (usuario.isVerified) {
+    return {
+      message: "La cuenta ya se encuentra verificada",
+    };
+  }
+
+  // Token expirado
+  if (usuario.tokenExpira && new Date() > usuario.tokenExpira) {
+    throw new AppError("El enlace de verificación ha expirado", 400);
+  }
+
+  // Activar cuenta
+  usuario.isVerified = 1;
+  usuario.verificationToken = null;
+  usuario.tokenExpira = null;
+
+  await this.repoUsuario.save(usuario);
+
+  return {
+    message: "Cuenta verificada correctamente. Ya puedes iniciar sesión.",
+  };
+}
 
   generateTokens(payload: any) {
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {

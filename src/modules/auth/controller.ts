@@ -23,7 +23,7 @@ export class AuthController {
   loginUserPassword = async (req: Request, res: Response) => {
     const usuario = await this.authService.loginUserPassword(
       req.body.email,
-      req.body.password
+      req.body.password,
     );
     res.status(200).json(usuario);
   };
@@ -36,7 +36,7 @@ export class AuthController {
 
   obtenerUsuarioAutenticado = async (req: Request, res: Response) => {
     const usuario = await this.authService.obtenerInfoUsuarioAutenticado(
-      req.params.idCliente
+      req.params.idCliente,
     );
     res.status(200).json(usuario);
   };
@@ -45,5 +45,16 @@ export class AuthController {
     const { refreshToken } = req.body;
     const data = await this.authService.refreshToken(refreshToken);
     res.status(200).json(data);
-  }
+  };
+
+  verifyAccount = async (req: Request, res: Response) => {
+    const { token, idCliente } = req.query;
+
+    const result = await this.authService.verifyAccount(
+      token as string,
+      idCliente as string,
+    );
+
+    res.send(result);
+  };
 }
