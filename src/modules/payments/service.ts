@@ -3,18 +3,10 @@ import { PaymentezProvider } from "./providers/paymentez.js";
 
 
 export class PaymentsService {
-  private provider: PaymentProvider | undefined;
 
-  constructor(providerType: "paymentez" | "paypal" = "paymentez") {
-    // Aquí puedes cambiar proveedor fácilmente
-    if (providerType === "paymentez") {
-      this.provider = new PaymentezProvider();
-    }
 
-    // En el futuro:
-    // if (providerType === "paypal") {
-    //   this.provider = new PaypalProvider();
-    // }
+  constructor(private readonly provider: PaymentProvider) {
+
   }
 
   async listarTarjetas(userId: string) {
@@ -32,5 +24,16 @@ export class PaymentsService {
     cardToken?: string;
   }) {
     return this.provider?.debit(data);
+  }
+
+   async reembolsar(data: {
+    transactionId: string;
+    amount: number;
+    moreInfo?: boolean;
+  }) {
+    if (!this.provider.refund) {
+      throw new Error("El proveedor actual no soporta reembolsos");
+    }
+    return this.provider.refund(data);
   }
 }

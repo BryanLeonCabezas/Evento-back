@@ -1,8 +1,13 @@
 import { Request, Response } from "express";
 import { PaymentsService } from "./service.js";
+import { PaymentezProvider } from "./providers/paymentez.js";
 
-const service = new PaymentsService("paymentez");
-
+const service = new PaymentsService(new PaymentezProvider(
+  {
+    appCode: process.env.PAYMENTEZ_APP_CODE!,
+    appKey: process.env.PAYMENTEZ_APP_KEY!,
+  }
+));
 export const listarTarjetas = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {

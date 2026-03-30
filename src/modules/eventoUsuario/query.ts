@@ -1,5 +1,6 @@
-import { EntityManager } from "typeorm"; // ← cambiar el import
+import { Entity, EntityManager } from "typeorm"; // ← cambiar el import
 import { EstadoTarjeta } from "../../common/enums/EstadoTarjeta.enum.js";
+import { AppError } from "../../common/utils/App.error.js";
 
 export async function obtenerUsuario(manager: EntityManager, idUsuario: string) {
   return manager.createQueryBuilder()  // ← manager en vez de repository
@@ -68,4 +69,53 @@ export async function usuarioYaInscrito(
     .andWhere("eu.ID_CLIENTE = :idUsuario", { idUsuario })
     .andWhere("eu.ESTADO IN ('A','S','N')")
     .getExists();
+}
+
+export async function obtenerDatosInstitucion(manager: EntityManager,
+  idEvento: number) {
+  const result = await manager.createQueryBuilder()
+    .select([
+      "i.ID_INSTITUCION      AS ID_INSTITUCION",
+      "i.NOMBRE              AS NOMBRE",
+      "i.PROVEEDOR_PAGO      AS PROVEEDOR_PAGO",
+      "i.USUARIO_PASARELA    AS USUARIO_PASARELA",
+      "i.CONTRASENA_PASARELA AS CONTRASENA_PASARELA",
+      "i.TOKEN_PASARELA      AS TOKEN_PASARELA",
+    ])
+    .from("EVENTOS", "e")
+    .innerJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
+    .innerJoin("LOCALES", "l", "l.ID_LOCAL = s.ID_LOCAL")
+    .innerJoin("INSTITUCIONES", "i", "i.ID_INSTITUCION = l.ID_INSTITUCION")
+    .where("e.ID_EVENTO = :idEvento", { idEvento })
+    .getRawOne();
+
+  if (!result) {
+    throw new AppError("Institución no encontrada para el evento", 404);
+  }
+
+  return result;
+
+}
+
+// query.ts — agregar esta
+export async function obtenerInstitucionPorUsuario(manager: EntityManager, idUsuario: string) {
+  const result = await manager.createQueryBuilder()
+    .select([
+      "i.ID_INSTITUCION      AS ID_INSTITUCION",
+      "i.NOMBRE              AS NOMBRE",
+      "i.PROVEEDOR_PAGO      AS PROVEEDOR_PAGO",
+      "i.USUARIO_PASARELA    AS USUARIO_PASARELA",
+      "i.CONTRASENA_PASARELA AS CONTRASENA_PASARELA",
+      "i.TOKEN_PASARELA      AS TOKEN_PASARELA",
+    ])
+    .from("INSTITUCIONES", "i")
+    .innerJoin("USUARIO_INSTITUCIONES", "ui", "ui.ID_INSTITUCION = i.ID_INSTITUCION")
+    .where("ui.ID_CLIENTE = :idUsuario", { idUsuario })
+    .getRawOne();
+
+  if (!result) {
+    throw new AppError("Institución no encontrada para el usuario", 404);
+  }
+
+  return result;
 }

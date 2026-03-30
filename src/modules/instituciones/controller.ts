@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { InstitucionesService } from "./service.js";
 
 export class InstitucionesController {
-  constructor(private institucionService: InstitucionesService) {}
+  constructor(private institucionService: InstitucionesService) { }
 
   listarInstituciones = async (req: Request, res: Response) => {
     console.log('listarInstituciones llamado');
@@ -16,5 +16,12 @@ export class InstitucionesController {
       idInstitucion
     );
     res.status(200).json(institucion);
+  };
+
+  obtenerInstitucionByidUsuario = async (req: Request, res: Response) => {
+    const idUsuario = req.params.idUsuario;
+    console.log('obtenerInstitucionByidUsuario llamado con idUsuario:', idUsuario);
+    const instituciones = await this.institucionService.obtenerInstitucionByidUsuario(idUsuario);
+    res.status(200).json(instituciones);
   };
 }

@@ -1,6 +1,7 @@
-import { Column, Entity, Index, OneToMany } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { UsuarioInstituciones } from "../usuarioIntituciones/entity.js";
 import { Locales } from "../locales/entity.js";
+import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
 
 
 @Index("SYS_C0012848", ["idInstitucion"], { unique: true })
@@ -40,6 +41,9 @@ export class Instituciones {
   @Column("varchar2", { name: "TOKEN_PASARELA", nullable: true, length: 20 })
   tokenPasarela: string | null;
 
+  @Column("varchar2", { name: "PROVEEDOR_PAGO", nullable: true, length: 100 })
+  proveedorPago: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales: Locales[];
 
@@ -48,4 +52,9 @@ export class Instituciones {
     (usuarioInstituciones) => usuarioInstituciones.idInstitucion
   )
   usuarioInstituciones: UsuarioInstituciones[];
+
+  @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.institucion)
+  tarjetasUsuario: TarjetasUsuario[];
+
+
 }

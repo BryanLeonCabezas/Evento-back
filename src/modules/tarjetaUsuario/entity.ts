@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Usuarios } from "../usuario/entity.js";
+import { Instituciones } from "../instituciones/entity.js";
 
 @Entity("TARJETAS_USUARIO")
 export class TarjetasUsuario {
@@ -69,4 +70,13 @@ export class TarjetasUsuario {
 
   @Column("date", { name: "FECHA_REGISTRO" })
   fechaRegistro: Date;
+
+  @Column("number", { name: "ID_INSTITUCION" })
+  idInstitucion: number;
+
+  @ManyToOne(() => Instituciones, (inst) => inst.tarjetasUsuario)
+  @JoinColumn({ name: 'ID_INSTITUCION' })
+  institucion: Instituciones;
+
+
 }

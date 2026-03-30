@@ -13,8 +13,10 @@ export class TarjetaUsuarioController {
 
   obtenerTarjetaXIdUsuario = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
+    const idInstitucion = Number(req.query.idInstitucion);
     const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaPorIdUsuario(
       String(idUsuario),
+      idInstitucion
     );
     res.status(200).json(tarjeta);
   };
@@ -33,17 +35,17 @@ export class TarjetaUsuarioController {
 
   eliminarTarjeta = async (req: Request, res: Response) => {
     const idTarjeta = Number(req.params.idTarjeta);
-    const tarjeta = await this.tarjetaUsuarioService.eliminarTarjeta(idTarjeta);
+    const tarjeta = await this.tarjetaUsuarioService.eliminarTarjeta(idTarjeta, Number(req.query.idInstitucion));
     res.status(200).json(tarjeta);
   };
 
   establecerPredeterminada = async (req: Request, res: Response) => {
-    const { idTarjeta } = req.body;
+    const { idTarjeta, idInstitucion } = req.body;
     const idUsuario = req.params.idCliente;
-
     const tarjeta = await this.tarjetaUsuarioService.establecerPredeterminada(
       idUsuario,
       idTarjeta,
+      idInstitucion
     );
 
     res.status(200).json(tarjeta);
@@ -51,9 +53,10 @@ export class TarjetaUsuarioController {
 
   obtenerTarjetaPredeterminada = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
+    const idInstitucion = Number(req.query.idInstitucion);
     console.log("Obteniendo tarjeta predeterminada para usuario", idUsuario);
     const tarjeta =
-      await this.tarjetaUsuarioService.obtenerTarjetaPredeterminada(idUsuario);
+      await this.tarjetaUsuarioService.obtenerTarjetaPredeterminada(idUsuario, idInstitucion);
     res.status(200).json(tarjeta);
   };
 }

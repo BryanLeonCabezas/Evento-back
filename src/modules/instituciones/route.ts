@@ -15,5 +15,10 @@ router.get(
   authMiddleware,
   asyncWrapper(institucionController.obtenerInstitucionById),
 );
+router.get(
+  "/usuario/:idUsuario",
+  
+  asyncWrapper(institucionController.obtenerInstitucionByidUsuario),
+);
 
 export default router;

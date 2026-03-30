@@ -10,7 +10,8 @@ export interface GuardarTarjetaDto {
   transactionReference?: string; 
   origin?: string;         
   type?: string; 
-  holderName?: string;     
+  holderName?: string;   
+  idInstitucion: number;  
 }
 
 export interface TarjetaUsuarioResponseDto {
