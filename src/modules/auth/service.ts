@@ -163,6 +163,15 @@ export class AuthService {
 
     if (!passwordCorrect) throw new AppError("Contrasena incorrecta", 400);
 
+    if (
+      usuario.tipoUsuario === TipoUsuarioEnum.NORMAL &&
+      usuario.isVerified === verificadoEnum.NO_VERIFICADO
+    )
+      throw new AppError(
+        "Debes verificar tu cuenta antes de iniciar sesión. Revisa tu correo electrónico.",
+        403,
+      );
+
     const { accessToken, refreshToken } = this.generateTokens({
       idCliente: usuario.idCliente,
       email: usuario.email,
@@ -263,48 +272,59 @@ export class AuthService {
   }
 
   async verifyAccount(token: string, idCliente?: string) {
-  if (!token) {
-    throw new AppError("Token requerido", 400);
+    if (!token || !idCliente) {
+      throw new AppError("Token e idCliente son requeridos", 400);
+    }
+
+    const tokenLimpio = token.trim();
+    const idClienteLimpio = idCliente.trim();
+
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(idClienteLimpio)) {
+      throw new AppError("Parámetros inválidos", 400);
+    }
+
+    // Hashear token recibido
+    const hashedToken = hashToken(token);
+
+    // Buscar usuario
+    const usuario = await this.repoUsuario.findOne({
+      where: {
+        verificationToken: hashedToken,
+        ...(idCliente && { idCliente }),
+      },
+    });
+
+    if (!usuario) {
+      throw new AppError("Token inválido o usuario no encontrado", 400);
+    }
+
+    // Ya verificado
+    if (usuario.isVerified === verificadoEnum.VERIFICADO) {
+      return {
+        status: "already_verified",
+        message: "La cuenta ya fue verificada anteriormente.",
+      };
+    }
+
+    // Token expirado
+    if (usuario.tokenExpira && new Date() > usuario.tokenExpira) {
+      usuario.verificationToken = null;
+      usuario.tokenExpira = null;
+      await this.repoUsuario.save(usuario);
+      throw new AppError("El enlace ha expirado. Solicita uno nuevo.", 410);
+    }
+
+    // Activar cuenta
+    usuario.isVerified = verificadoEnum.VERIFICADO;
+    usuario.verificationToken = null;
+    usuario.tokenExpira = null;
+
+    await this.repoUsuario.save(usuario);
+
+    return { status: "verified", message: "Cuenta verificada correctamente." };
   }
-
-  // Hashear token recibido
-  const hashedToken = hashToken(token);
-
-  // Buscar usuario
-  const usuario = await this.repoUsuario.findOne({
-    where: {
-      verificationToken: hashedToken,
-      ...(idCliente && { idCliente }),
-    },
-  });
-
-  if (!usuario) {
-    throw new AppError("Token inválido o usuario no encontrado", 400);
-  }
-
-  // Ya verificado
-  if (usuario.isVerified) {
-    return {
-      message: "La cuenta ya se encuentra verificada",
-    };
-  }
-
-  // Token expirado
-  if (usuario.tokenExpira && new Date() > usuario.tokenExpira) {
-    throw new AppError("El enlace de verificación ha expirado", 400);
-  }
-
-  // Activar cuenta
-  usuario.isVerified = 1;
-  usuario.verificationToken = null;
-  usuario.tokenExpira = null;
-
-  await this.repoUsuario.save(usuario);
-
-  return {
-    message: "Cuenta verificada correctamente. Ya puedes iniciar sesión.",
-  };
-}
 
   generateTokens(payload: any) {
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
@@ -316,5 +336,45 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  // En AuthService
+  async resendVerificationEmail(email: string) {
+    const usuario = await this.repoUsuario.findOneBy({ email });
+
+    if (!usuario) throw new AppError("Usuario no encontrado", 404);
+
+    if (
+      usuario.isVerified === verificadoEnum.VERIFICADO &&
+      usuario.tipoUsuario === TipoUsuarioEnum.NORMAL
+    ) {
+      throw new AppError("La cuenta ya está verificada", 400);
+    }
+
+    // Evitar spam: verificar si el token anterior aún no expiró
+    const ahoraMs = Date.now();
+    const expiraMs = usuario.tokenExpira?.getTime() ?? 0;
+    const minutosRestantes = (expiraMs - ahoraMs) / 1000 / 60;
+
+    if (minutosRestantes > 23) {
+      // Dejó pasar menos de 1 hora desde el último envío
+      throw new AppError(
+        `Espera antes de solicitar otro enlace. Revisa tu correo.`,
+        429,
+      );
+    }
+
+    const { token, hashedToken } = generateVerificationToken();
+    usuario.verificationToken = hashedToken;
+    usuario.tokenExpira = new Date(ahoraMs + 1000 * 60 * 60 * 24);
+    await this.repoUsuario.save(usuario);
+
+    await sendVerificationEmail({
+      correo: usuario.email,
+      nombre: usuario.nombre!,
+      linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
+    });
+
+    return { message: "Correo de verificación reenviado correctamente." };
   }
 }

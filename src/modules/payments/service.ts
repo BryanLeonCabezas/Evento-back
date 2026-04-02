@@ -22,6 +22,7 @@ export class PaymentsService {
     amount: number;
     description: string;
     cardToken?: string;
+    email: string;
   }) {
     return this.provider?.debit(data);
   }

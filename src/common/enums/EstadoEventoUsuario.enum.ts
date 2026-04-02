@@ -1,6 +1,6 @@
 export enum EstadoEventoUsuario {
-  SUSCRITO = "A",
+  SUSCRITO = "S",
   CANCELADO = "C",
-  ASISTIO = "S",
+  ASISTIO = "A",
   NO_ASISTIO = "N",
 }

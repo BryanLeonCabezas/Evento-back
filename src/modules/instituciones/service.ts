@@ -22,11 +22,10 @@ export class InstitucionesService {
 
   async obtenerInstitucionByidUsuario(idUsuario: string) {
     const manager = AppDataSource.manager;
-    const instituciones = await obtenerInstitucionesPorUsuario(manager, idUsuario);
-    if (!instituciones || instituciones.length === 0) {
-      throw new AppError("Institucion no encontrada para el usuario", 404);
-    }
-    return instituciones;
-
+    const instituciones = await obtenerInstitucionesPorUsuario(
+      manager,
+      idUsuario,
+    );
+    return instituciones ?? [];
   }
 }

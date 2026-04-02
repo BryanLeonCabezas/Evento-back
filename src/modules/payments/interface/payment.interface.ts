@@ -8,6 +8,7 @@ export interface PaymentProvider {
     amount: number;
     description: string;
     cardToken?: string;
+    email: string;
   }): Promise<any>;
 
   refund?(data: {          // ← opcional, no todos los proveedores lo soportan

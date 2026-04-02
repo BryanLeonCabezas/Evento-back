@@ -2,7 +2,10 @@
 import { Router } from "express";
 import { AuthController } from "./controller.js";
 import { AuthService } from "./service.js";
-import { validateParamsSchema, validateSchema } from "../../middleware/validateSchema.js";
+import {
+  validateParamsSchema,
+  validateSchema,
+} from "../../middleware/validateSchema.js";
 import { crearUsuarioSchema } from "../../schemas/CreateUsuario.schema.js";
 import { asyncWrapper } from "../../common/utils/AsyncWrapper.js";
 import logoutSchema from "../../schemas/logout.schema.js";
@@ -14,30 +17,39 @@ const authController = new AuthController(authService);
 router.post(
   "/register-google",
   validateSchema(crearUsuarioSchema),
-  asyncWrapper(authController.registerGoogle)
+  asyncWrapper(authController.registerGoogle),
 );
 
 router.post(
   "/register-user-password",
   validateSchema(crearUsuarioSchema),
-  asyncWrapper(authController.registerUserPassword)
+  asyncWrapper(authController.registerUserPassword),
 );
 
 router.post(
   "/login-user-password",
-  asyncWrapper(authController.loginUserPassword)
+  asyncWrapper(authController.loginUserPassword),
 );
 
 router.post(
   "/logout/:idCliente",
   validateParamsSchema(logoutSchema),
-  asyncWrapper(authController.logout)
+  asyncWrapper(authController.logout),
 );
 
-router.get("/me/:idCliente",validateParamsSchema(logoutSchema), asyncWrapper(authController.obtenerUsuarioAutenticado));
+router.get(
+  "/me/:idCliente",
+  validateParamsSchema(logoutSchema),
+  asyncWrapper(authController.obtenerUsuarioAutenticado),
+);
 
 router.post("/refresh", asyncWrapper(authController.refresh));
 
-router.get("/auth/verify", asyncWrapper(authController.verifyAccount));
+router.get("/verify", asyncWrapper(authController.verifyAccount));
+
+router.post(
+  "/resend-verification-email",
+  asyncWrapper(authController.resendVerificationEmail),
+);
 
 export default router;

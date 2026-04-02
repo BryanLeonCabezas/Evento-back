@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "./service.js";
 import { log } from "console";
+import { renderVerificationPage } from "../../common/utils/verification-page.util.js";
 
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -48,13 +49,44 @@ export class AuthController {
   };
 
   verifyAccount = async (req: Request, res: Response) => {
-    const { token, idCliente } = req.query;
+    const { token, idCliente } = req.query as {
+      token: string;
+      idCliente: string;
+    };
 
-    const result = await this.authService.verifyAccount(
-      token as string,
-      idCliente as string,
-    );
+    try {
+      const result = await this.authService.verifyAccount(token, idCliente);
 
-    res.send(result);
+      if (result.status === "already_verified") {
+        return res.send(
+          renderVerificationPage("warning", "Ya verificado", result.message),
+        );
+      }
+
+      return res.send(
+        renderVerificationPage(
+          "success",
+          "¡Cuenta verificada!",
+          result.message,
+        ),
+      );
+    } catch (err: any) {
+      const isExpired = err.statusCode === 410;
+      return res
+        .status(err.statusCode ?? 400)
+        .send(
+          renderVerificationPage(
+            "error",
+            isExpired ? "Enlace expirado" : "Enlace inválido",
+            err.message,
+          ),
+        );
+    }
+  };
+
+  resendVerificationEmail = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const result = await this.authService.resendVerificationEmail(email);
+    res.status(200).json(result);
   };
 }
