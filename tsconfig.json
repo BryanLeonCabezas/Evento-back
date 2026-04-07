@@ -22,7 +22,7 @@
   /* ===============================
      LIMITA LO QUE ANALIZA TS
      =============================== */
-  "include": ["src/**/*.ts", "../nombre-provisional/src/app/core/dtos/evento-response.dto.ts"],
+  "include": ["src/**/*.ts"],
 
   "exclude": [
     "node_modules",

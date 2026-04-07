@@ -8,34 +8,34 @@ import { EntradasEvento } from "../entradaEvento/entity.js";
 @Entity("USUARIOS")
 export class Usuarios {
   @PrimaryColumn("varchar2", { name: "ID_CLIENTE", length: 36 })
-  idCliente: string;
+  idCliente!: string;
 
   @Column("varchar2", { primary: true, name: "EMAIL", length: 150 })
-  email: string;
+  email!: string;
 
   @Column("varchar2", { name: "NOMBRE", nullable: true, length: 100 })
-  nombre: string | null;
+  nombre?: string | null;
 
   @Column("varchar2", { name: "APELLIDO", nullable: true, length: 100 })
-  apellido: string | null;
+  apellido?: string | null;
 
   @Column("date", { name: "FECHA_NACIMIENTO", nullable: true })
-  fechaNacimiento: Date | null;
+  fechaNacimiento?: Date | null;
 
   @Column("varchar2", { name: "GENERO", nullable: true, length: 20 })
-  genero: string | null;
+  genero?: string | null;
 
   @Column("varchar2", { name: "DIRECCION", nullable: true, length: 250 })
-  direccion: string | null;
+  direccion?: string | null;
 
   @Column("varchar2", { name: "FOTO_URL", nullable: true, length: 500 })
-  fotoUrl: string | null;
+  fotoUrl?: string | null;
 
   @Column("varchar2", { name: "CLAVE_HASH", nullable: true, length: 500 })
-  claveHash: string | null;
+  claveHash?: string | null;
 
   @Column("varchar2", { name: "GOOGLE_ID", nullable: true, length: 100 })
-  googleId: string | null;
+  googleId?: string | null;
 
   @Column("varchar2", {
     name: "TIPO_USUARIO",
@@ -43,29 +43,29 @@ export class Usuarios {
     length: 20,
     default: () => "'NORMAL'",
   })
-  tipoUsuario: string | null;
+  tipoUsuario?: string | null;
 
   @Column("varchar2", {
     name: "VERIFICATION_TOKEN",
     nullable: true,
     length: 500,
   })
-  verificationToken: string | null;
+  verificationToken?: string | null;
 
-  // 🔐 NUEVO: si está verificado o no
+ 
   @Column("number", {
     name: "IS_VERIFIED",
     nullable: false,
     default: () => "0",
   })
-  isVerified: number; // 0 = no, 1 = sí
+  isVerified?: number; // 0 = no, 1 = sí
 
-  // 🔐 NUEVO: expiración del token
+  
   @Column("timestamp", {
     name: "TOKEN_EXPIRA",
     nullable: true,
   })
-  tokenExpira: Date | null;
+  tokenExpira?: Date | null;
 
   @Column("timestamp", {
     name: "FECHA_CREACION",
@@ -73,7 +73,7 @@ export class Usuarios {
     scale: 6,
     default: () => "CURRENT_TIMESTAMP",
   })
-  fechaCreacion: Date | null;
+  fechaCreacion?: Date | null;
 
   @Column("timestamp", {
     name: "FECHA_ACTUALIZACION",
@@ -81,29 +81,29 @@ export class Usuarios {
     scale: 6,
     default: () => "CURRENT_TIMESTAMP",
   })
-  fechaActualizacion: Date | null;
+  fechaActualizacion?: Date | null;
 
   @Column("varchar2", { name: "NUMERO_CELULAR", nullable: true, length: 20 })
-  numeroCelular: string | null;
+  numeroCelular?: string | null;
 
   @Column("varchar2", { name: "REFRESH_TOKEN", nullable: true, length: 1000 })
-  refreshToken: string | null;
+  refreshToken?: string | null;
 
   @OneToMany(
     () => EventosUsuarios,
     (eventosUsuarios) => eventosUsuarios.idCliente,
   )
-  eventosUsuarios: EventosUsuarios[];
+  eventosUsuarios?: EventosUsuarios[];
 
   @OneToMany(
     () => UsuarioInstituciones,
     (usuarioInstituciones) => usuarioInstituciones.idCliente,
   )
-  usuarioInstituciones: UsuarioInstituciones[];
+  usuarioInstituciones?: UsuarioInstituciones[];
 
   @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.usuario)
-  tarjetas: TarjetasUsuario[];
+  tarjetas?: TarjetasUsuario[];
 
   @OneToMany(() => EntradasEvento, (entrada) => entrada.usuario)
-  entradas: EntradasEvento[];
+  entradas?: EntradasEvento[];
 }

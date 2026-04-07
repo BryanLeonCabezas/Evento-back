@@ -14,76 +14,76 @@ import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
 @Entity("INSTITUCIONES")
 export class Instituciones {
   @Column("number", { primary: true, name: "ID_INSTITUCION" })
-  idInstitucion: number;
+  idInstitucion!: number;
 
   @Column("varchar2", { name: "NOMBRE", length: 150 })
-  nombre: string;
+  nombre!: string;
 
   @Column("varchar2", { name: "DIRECCION", nullable: true, length: 250 })
-  direccion: string | null;
+  direccion!: string | null;
 
   @Column("varchar2", { name: "CIUDAD", nullable: true, length: 100 })
-  ciudad: string | null;
+  ciudad!: string | null;
 
   @Column("varchar2", { name: "PAIS", nullable: true, length: 100 })
-  pais: string | null;
+  pais!: string | null;
 
   @Column("date", {
     name: "FECHA_REGISTRO",
     nullable: true,
     default: () => "SYSDATE",
   })
-  fechaRegistro: Date | null;
+  fechaRegistro!: Date | null;
 
   @Column("varchar2", { name: "CODIGO_CONEXION", nullable: true, length: 20 })
-  codigoConexion: string | null;
+  codigoConexion!: string | null;
 
   @Column("varchar2", { name: "USUARIO_PASARELA", nullable: true, length: 20 })
-  usuarioPasarela: string | null;
+  usuarioPasarela?: string | null;
 
   @Column("varchar2", {
     name: "CONTRASENA_PASARELA",
     nullable: true,
     length: 20,
   })
-  contrasenaPasarela: string | null;
+  contrasenaPasarela?: string | null;
 
   @Column("varchar2", { name: "TOKEN_PASARELA", nullable: true, length: 20 })
-  tokenPasarela: string | null;
+  tokenPasarela?: string | null;
 
   @Column("varchar2", { name: "PROVEEDOR_PAGO", nullable: true, length: 100 })
-  proveedorPago: string | null;
+  proveedorPago?: string | null;
 
   @Column("varchar2", {
     name: "PAYMENT_ENVIROMENT",
     nullable: true,
     length: 20,
   })
-  paymentEnvironment: string | null;
+  paymentEnvironment?: string | null;
 
   @Column("varchar2", {
     name: "APP_CODE_TOKENIZATION",
     nullable: true,
     length: 100,
   })
-  applicationCode: string | null;
+  applicationCode?: string | null;
 
   @Column("varchar2", {
     name: "APP_KEY_TOKENIZATION",
     nullable: true,
     length: 100,
   })
-  applicationKey: string | null;
+  applicationKey?: string | null;
 
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
-  locales: Locales[];
+  locales!: Locales[];
 
   @OneToMany(
     () => UsuarioInstituciones,
     (usuarioInstituciones) => usuarioInstituciones.idInstitucion,
   )
-  usuarioInstituciones: UsuarioInstituciones[];
+  usuarioInstituciones?: UsuarioInstituciones[];
 
   @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.institucion)
-  tarjetasUsuario: TarjetasUsuario[];
+  tarjetasUsuario?: TarjetasUsuario[];
 }

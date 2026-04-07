@@ -15,49 +15,49 @@ import { EntradasEvento } from "../entradaEvento/entity.js";
 @Entity("EVENTOS")
 export class Eventos {
   @Column("number", { primary: true, name: "ID_EVENTO" })
-  idEvento: number;
+  idEvento!: number;
 
   @Column("varchar2", { name: "TITULO", length: 200 })
-  titulo: string;
+  titulo!: string;
 
   @Column("varchar2", { name: "DESCRIPCION", nullable: true, length: 2000 })
-  descripcion: string | null;
+  descripcion!: string | null;
 
-  @Column("date", { name: "FECHA_EVENTO", type: "timestamp" })
-  fechaEvento: Date;
+  @Column( { name: "FECHA_EVENTO", type: "timestamp" })
+  fechaEvento!: Date;
 
-  @Column("date", { name: "HORA_INICIO", type: "timestamp"  })
-  horaInicio: Date;
+  @Column( { name: "HORA_INICIO", type: "timestamp"  })
+  horaInicio!: Date;
 
-  @Column("date", { name: "HORA_FIN", type: "timestamp" })
-  horaFin: Date;
+  @Column( { name: "HORA_FIN", type: "timestamp" })
+  horaFin!: Date;
 
   @Column("number", {
     name: "TIEMPO_SETUP_MIN",
     nullable: true,
     default: () => "0",
   })
-  tiempoSetupMin: number | null;
+  tiempoSetupMin!: number | null;
 
   @Column("number", {
     name: "TIEMPO_CLEAN_MIN",
     nullable: true,
     default: () => "0",
   })
-  tiempoCleanMin: number | null;
+  tiempoCleanMin!: number | null;
 
   @Column("number", { name: "PUBLICO_ESPERADO", nullable: true })
-  publicoEsperado: number | null;
+  publicoEsperado!: number | null;
 
   @Column("varchar2", { name: "IMAGEN_URL", nullable: true, length: 500 })
-  imagenUrl: string | null;
+  imagenUrl!: string | null;
 
   @Column("date", {
     name: "FECHA_REGISTRO",
     nullable: true,
     default: () => "SYSDATE",
   })
-  fechaRegistro: Date | null;
+  fechaRegistro!: Date | null;
 
   @Column({
     name: "DESTACADO",
@@ -65,7 +65,7 @@ export class Eventos {
     precision: 1,
     default: 0,
   })
-  destacado: number;
+  destacado!: number;
 
   @Column({
     name: "FECHA_DESTACADO",
@@ -82,22 +82,22 @@ export class Eventos {
   ordenDestacado?: number;
 
   @Column("number", { name: "PRECIO", nullable: true, precision: 10, scale: 2 })
-  precio: number | null;
+  precio?: number | null;
 
   @ManyToOne(() => Salones, (salones) => salones.eventos)
   @JoinColumn([{ name: "ID_SALON", referencedColumnName: "idSalon" }])
-  idSalon: Salones;
+  idSalon!: Salones;
 
   @ManyToOne(() => Subsalones, (subsalones) => subsalones.eventos)
   @JoinColumn([{ name: "ID_SUBSALON", referencedColumnName: "idSubsalon" }])
-  idSubsalon: Subsalones;
+  idSubsalon?: Subsalones;
 
   @OneToMany(
     () => EventosUsuarios,
     (eventosUsuarios) => eventosUsuarios.idEvento,
   )
-  eventosUsuarios: EventosUsuarios[];
+  eventosUsuarios?: EventosUsuarios[];
 
   @OneToMany(() => EntradasEvento, (entrada) => entrada.evento)
-  entradas: EntradasEvento[];
+  entradas?: EntradasEvento[];
 }

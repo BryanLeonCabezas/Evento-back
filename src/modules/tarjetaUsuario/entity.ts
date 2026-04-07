@@ -11,72 +11,72 @@ import { Instituciones } from "../instituciones/entity.js";
 @Entity("TARJETAS_USUARIO")
 export class TarjetasUsuario {
   @PrimaryGeneratedColumn({ name: "ID_TARJETA", type: "number" })
-  idTarjeta: number;
+  idTarjeta!: number;
 
-  // 🔗 RELACIÓN CON USUARIOS
+  //RELACIÓN CON USUARIOS
   @ManyToOne(() => Usuarios, (usuario) => usuario.tarjetas, { nullable: false })
   @JoinColumn({ name: "ID_CLIENTE", referencedColumnName: "idCliente" })
-  usuario: Usuarios;
+  usuario!: Usuarios;
 
   @Column("varchar2", { name: "EMAIL", length: 150 })
-  email: string;
+  email!: string;
 
   @Column("varchar2", { name: "TOKEN", length: 200 })
-  token: string;
+  token!: string;
 
   @Column("varchar2", {
     name: "LAST4",
     length: 4,
   })
-  last4: string;
+  last4?: string;
 
   @Column("varchar2", { name: "BIN", length: 6, nullable: true })
-  bin: string | null;
+  bin?: string | null;
 
   @Column("varchar2", { name: "TIPO", length: 20 })
-  tipo: string; // VISA, MASTERCARD
+  tipo?: string; // VISA, MASTERCARD
 
   @Column("varchar2", { name: "BANCO", length: 100, nullable: true })
-  banco: string | null;
+  banco?: string | null;
 
   @Column("number", { name: "EXPIRY_MONTH", precision: 2 })
-  expiryMonth: number;
+  expiryMonth?: number;
 
   @Column("number", { name: "EXPIRY_YEAR", precision: 4 })
-  expiryYear: number;
+  expiryYear?: number;
 
   @Column("varchar2", { name: "STATUS", length: 20 })
-  status: string;
+  status?: string;
 
   @Column("varchar2", { name: "ORIGIN", length: 50, nullable: true })
-  origin: string | null;
+  origin?: string | null;
 
   @Column("varchar2", {
     name: "TRANSACTION_REFERENCE",
     length: 100,
     nullable: true,
   })
-  transactionReference: string | null;
+  transactionReference?: string | null;
 
   @Column("varchar2", {
     name: "HOLDER_NAME",
     length: 100,
     nullable: true,
   })
-  holderName: string | null;
+  holderName?: string | null;
 
   @Column("number", { name: "PREDETERMINADO", precision: 1 })
-  predeterminado: number;
+  predeterminado?: number;
 
   @Column("date", { name: "FECHA_REGISTRO" })
-  fechaRegistro: Date;
+  fechaRegistro!: Date;
 
   @Column("number", { name: "ID_INSTITUCION" })
-  idInstitucion: number;
+  idInstitucion?: number;
 
   @ManyToOne(() => Instituciones, (inst) => inst.tarjetasUsuario)
   @JoinColumn({ name: 'ID_INSTITUCION' })
-  institucion: Instituciones;
+  institucion?: Instituciones;
 
 
 }

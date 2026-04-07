@@ -14,31 +14,31 @@ import { Salones } from "../salones/entity.js";
   @Entity("LOCALES")
   export class Locales {
     @Column("number", { primary: true, name: "ID_LOCAL" })
-    idLocal: number;
+    idLocal!: number;
   
     @Column("varchar2", { name: "NOMBRE", length: 150 })
-    nombre: string;
+    nombre!: string;
   
     @Column("varchar2", { name: "UBICACION", nullable: true, length: 250 })
-    ubicacion: string | null;
+    ubicacion?: string | null;
   
     @Column("varchar2", { name: "DESCRIPCION", nullable: true, length: 4000 })
-    descripcion: string | null;
+    descripcion?: string | null;
   
     @Column("date", {
       name: "FECHA_REGISTRO",
       nullable: true,
       default: () => "SYSDATE",
     })
-    fechaRegistro: Date | null;
+    fechaRegistro?: Date | null;
   
     @ManyToOne(() => Instituciones, (instituciones) => instituciones.locales)
     @JoinColumn([
       { name: "ID_INSTITUCION", referencedColumnName: "idInstitucion" },
     ])
-    idInstitucion: Instituciones;
+    idInstitucion?: Instituciones;
   
     @OneToMany(() => Salones, (salones) => salones.idLocal)
-    salones: Salones[];
+    salones?: Salones[];
   }
   

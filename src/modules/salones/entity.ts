@@ -15,10 +15,10 @@ import { Eventos } from "../evento/entity.js";
   @Entity("SALONES")
   export class Salones {
     @Column("number", { primary: true, name: "ID_SALON" })
-    idSalon: number;
+    idSalon!: number;
   
     @Column("varchar2", { name: "NOMBRE", length: 150 })
-    nombre: string;
+    nombre!: string;
   
     @Column("char", {
       name: "ES_SUBDIVISIBLE",
@@ -26,26 +26,26 @@ import { Eventos } from "../evento/entity.js";
       length: 1,
       default: () => "'N'",
     })
-    esSubdivisible: string | null;
+    esSubdivisible?: string | null;
   
     @Column("number", { name: "CAPACIDAD_MAX", nullable: true })
-    capacidadMax: number | null;
+    capacidadMax?: number | null;
   
     @Column("date", {
       name: "FECHA_REGISTRO",
       nullable: true,
       default: () => "SYSDATE",
     })
-    fechaRegistro: Date | null;
+    fechaRegistro?: Date | null;
   
     @OneToMany(() => Eventos, (eventos) => eventos.idSalon)
-    eventos: Eventos[];
+    eventos?: Eventos[];
   
     @ManyToOne(() => Locales, (locales) => locales.salones)
     @JoinColumn([{ name: "ID_LOCAL", referencedColumnName: "idLocal" }])
-    idLocal: Locales;
+    idLocal?: Locales;
   
     @OneToMany(() => Subsalones, (subsalones) => subsalones.idSalon)
-    subsalones: Subsalones[];
+    subsalones?: Subsalones[];
   }
   

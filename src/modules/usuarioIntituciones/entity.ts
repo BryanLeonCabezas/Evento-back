@@ -7,14 +7,14 @@ import { Instituciones } from "../instituciones/entity.js";
 @Entity("USUARIO_INSTITUCIONES")
 export class UsuarioInstituciones {
   @Column("char", { name: "ESTADO", nullable: true, length: 1 })
-  estado: string | null;
+  estado!: string | null;
 
   @Column("date", {
     name: "FECHA_REGISTRO",
     nullable: true,
     default: () => "SYSDATE",
   })
-  fechaRegistro: Date | null;
+  fechaRegistro!: Date | null;
 
   @Column("number", {
     primary: true,
@@ -22,7 +22,7 @@ export class UsuarioInstituciones {
     precision: 38,
     scale: 0,
   })
-  idUsuarioInstituciones: number;
+  idUsuarioInstituciones?: number;
 
   @ManyToOne(
     () => Instituciones,
@@ -31,9 +31,9 @@ export class UsuarioInstituciones {
   @JoinColumn([
     { name: "ID_INSTITUCION", referencedColumnName: "idInstitucion" },
   ])
-  idInstitucion: Instituciones;
+  idInstitucion?: Instituciones;
 
   @ManyToOne(() => Usuarios, (usuarios) => usuarios.usuarioInstituciones)
   @JoinColumn([{ name: "ID_CLIENTE", referencedColumnName: "idCliente" }])
-  idCliente: Usuarios;
+  idCliente?: Usuarios;
 }

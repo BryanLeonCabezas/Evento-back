@@ -21,7 +21,7 @@ export class EntradasEvento {
     name: "ID_ENTRADA",
     type: "number"
   })
-  idEntrada: number;
+  idEntrada!: number;
 
   /* ================= RELACIONES ================= */
 
@@ -30,14 +30,14 @@ export class EntradasEvento {
     name: "ID_CLIENTE",               // FK en ENTRADAS_EVENTO
     referencedColumnName: "idCliente" // PK en USUARIOS
   })
-  usuario: Usuarios;
+  usuario!: Usuarios;
 
   @ManyToOne(() => Eventos, evento => evento.entradas, { nullable: false })
   @JoinColumn({
     name: "ID_EVENTO",
     referencedColumnName: "idEvento"
   })
-  evento: Eventos;
+  evento!: Eventos;
 
   /* ================= QR ================= */
 
@@ -47,7 +47,7 @@ export class EntradasEvento {
     length: 255,
     nullable: false
   })
-  qrToken: string;
+  qrToken!: string;
 
   @Column({
     name: "QR_HASH",
@@ -55,7 +55,7 @@ export class EntradasEvento {
     length: 255,
     nullable: false
   })
-  qrHash: string;
+  qrHash! : string;
 
   /* ================= ESTADO ================= */
 
@@ -66,7 +66,7 @@ export class EntradasEvento {
     default: "ACTIVO",
     nullable: false
   })
-  estado: "ACTIVO" | "USADO" | "CANCELADO";
+  estado!: "ACTIVO" | "USADO" | "CANCELADO";
 
   /* ================= FECHAS ================= */
 
@@ -74,7 +74,7 @@ export class EntradasEvento {
     name: "FECHA_COMPRA",
     type: "timestamp"
   })
-  fechaCompra: Date;
+  fechaCompra?: Date;
 
   @Column({
     name: "FECHA_USO",
@@ -91,5 +91,5 @@ export class EntradasEvento {
     default: 0,
     nullable: false
   })
-  intentosValidacion: number;
+  intentosValidacion?: number;
 }

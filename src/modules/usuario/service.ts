@@ -80,7 +80,7 @@ export class UsuarioService {
       throw new AppError("Usuario no encontrado", 404);
     }
 
-    return usuario.usuarioInstituciones.map((ui) => ui.idInstitucion);
+    return usuario.usuarioInstituciones?.map((ui) => ui.idInstitucion) ?? [];
   }
 
   async editarUsuario(idCliente: string, datos: UpdateUsuarioDto) {

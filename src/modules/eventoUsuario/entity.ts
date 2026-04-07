@@ -16,44 +16,44 @@ import { Pagos } from "../pagos/entity.js";
 export class EventosUsuarios {
   @PrimaryGeneratedColumn({
     name: "ID_EVENTO_USUARIO",
-    sequenceName: "SEQ_EVENTOS_USUARIOS", // ← le dice a TypeORM qué secuencia usar
+    //sequenceName: "SEQ_EVENTOS_USUARIOS", // ← le dice a TypeORM qué secuencia usar
   })
-  idEventoUsuario: number;
+  idEventoUsuario!: number;
 
   @Column("char", { name: "ESTADO", nullable: true, length: 1 })
-  estado: string | null;
+  estado!: string | null;
 
   @Column("date", {
     name: "FECHA_REGISTRO",
     nullable: true,
     default: () => "SYSDATE",
   })
-  fechaRegistro: Date | null;
+  fechaRegistro!: Date | null;
 
   @Column("varchar2", { name: "QR_TOKEN", nullable: true, length: 100 })
-  qrToken: string | null;
+  qrToken?: string | null;
 
   @Column("char", { name: "ASISTIO", nullable: true, length: 1 })
-  asistio: string | null;
+  asistio?: string | null;
 
   @Column("date", {
     name: "FECHA_ENTRADA",
     nullable: true,
     default: () => "SYSDATE",
   })
-  fechaEntrada: Date | null;
+  fechaEntrada!: Date | null;
 
   @Column("varchar2", { name: "OBSERVACION", nullable: true, length: 500 })
-  observacion: string | null;
+  observacion?: string | null;
 
   @ManyToOne(() => Eventos, (eventos) => eventos.eventosUsuarios)
   @JoinColumn([{ name: "ID_EVENTO", referencedColumnName: "idEvento" }])
-  idEvento: Eventos;
+  idEvento!: Eventos;
 
   @ManyToOne(() => Usuarios, (usuarios) => usuarios.eventosUsuarios)
   @JoinColumn([{ name: "ID_CLIENTE", referencedColumnName: "idCliente" }])
-  idCliente: Usuarios;
+  idCliente!: Usuarios;
 
   @OneToMany(() => Pagos, (pago) => pago.eventoUsuario)
-  pagos: Pagos[];
+  pagos?: Pagos[];
 }

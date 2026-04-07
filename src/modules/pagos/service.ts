@@ -83,17 +83,17 @@ export class PagosService {
   private mapToDetalleDto(pago: Pagos): PagoDetalleResponseDto {
     return {
       idPago: pago.idPago,
-      transaccionId: pago.transaccionId,
-      pasarela: pago.pasarela,
-      estado: pago.estado,
+      transaccionId: pago.transaccionId ?? null,
+      pasarela: pago.pasarela ?? null,
+      estado: pago.estado ?? null,
       tipoPago: pago.tipoPago,
-      monto: pago.monto,
-      moneda: pago.moneda,
+      monto: pago.monto ?? 0,
+      moneda: pago.moneda ?? "",
       esGratis: pago.esGratis === "S",
-      marcaTarjeta: pago.marcaTarjeta,
-      ultimos4: pago.ultimos4,
-      fechaPago: pago.fechaPago,
-      fechaRegistro: pago.fechaRegistro,
+      marcaTarjeta: pago.marcaTarjeta ?? null,
+      ultimos4: pago.ultimos4 ?? null, 
+      fechaPago: pago.fechaPago ?? null,
+      fechaRegistro: pago.fechaRegistro! ?? null,
     };
   }
 }

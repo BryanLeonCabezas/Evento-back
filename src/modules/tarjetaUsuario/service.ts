@@ -47,12 +47,12 @@ export class TarjetaUsuarioService {
   ): TarjetaUsuarioResponseDto {
     return {
       idTarjeta: t.idTarjeta,
-      brand: t.tipo,
+      brand: t.tipo ?? "",
       brandName: PaymentezBrandNombre[t.tipo as PaymentezBrand] ?? "DESCONOCIDO",
-      last4: t.last4,
+      last4: t.last4 ?? "",
       bin: t.bin ?? "",
-      expMonth: t.expiryMonth,
-      expYear: t.expiryYear,
+      expMonth: t.expiryMonth ?? 0,
+      expYear: t.expiryYear ?? 0,
       banco: t.banco ?? "",
       holderName: t.holderName ?? "",
       predeterminado: t.predeterminado === PredeterminadoTarjeta.SI,

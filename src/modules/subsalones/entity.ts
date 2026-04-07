@@ -14,26 +14,26 @@ import { Salones } from "../salones/entity.js";
   @Entity("SUBSALONES")
   export class Subsalones {
     @Column("number", { primary: true, name: "ID_SUBSALON" })
-    idSubsalon: number;
+    idSubsalon!: number;
   
     @Column("varchar2", { name: "NOMBRE", length: 150 })
-    nombre: string;
+    nombre!: string;
   
     @Column("number", { name: "CAPACIDAD_MAX", nullable: true })
-    capacidadMax: number | null;
+    capacidadMax?: number | null;
   
     @Column("date", {
       name: "FECHA_REGISTRO",
       nullable: true,
       default: () => "SYSDATE",
     })
-    fechaRegistro: Date | null;
+    fechaRegistro?: Date | null;
   
     @OneToMany(() => Eventos, (eventos) => eventos.idSubsalon)
-    eventos: Eventos[];
+    eventos?: Eventos[];
   
     @ManyToOne(() => Salones, (salones) => salones.subsalones)
     @JoinColumn([{ name: "ID_SALON", referencedColumnName: "idSalon" }])
-    idSalon: Salones;
+    idSalon?: Salones;
   }
   
