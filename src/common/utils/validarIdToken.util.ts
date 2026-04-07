@@ -7,8 +7,9 @@ import { GoogleApis, google } from "googleapis";
 import { GeneroEnum } from "../enums/Genero.enum.js";
 import { UsuarioDto } from "../../modules/auth/dtos/usuario.dto.js";
 import { AppError } from "./App.error.js";
+import { env } from "../../config/env.js";
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(env.jwt.googleClientId);
 
 const genderMap: Record<string, GeneroEnum> = {
   male: GeneroEnum.HOMBRE,
@@ -25,7 +26,7 @@ export const validarIdTokenGoogle = async (
   try {
     ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: env.jwt.googleClientId,
     });
   } catch (error: any) {
     throw new AppError(
@@ -34,7 +35,7 @@ export const validarIdTokenGoogle = async (
       error.message
     );
   }
-  console.log("ticket", ticket);
+
 
   const payload = ticket.getPayload();
   if (!payload) throw new Error("Token inválido");
@@ -74,16 +75,7 @@ export const validarIdTokenGoogle = async (
   const birthday =
     person.birthdays?.find((b) => b.date?.year) || person.birthdays?.[0];
 
-  /*const fechaNacimientoStr = birthday?.date
-    ? `${birthday.date.year ?? "0000"}-${birthday?.date.month
-        ?.toString()
-        .padStart(2, "0")}-${birthday.date.day?.toString().padStart(2, "0")}`
-    : null;
-  console.log(fechaNacimientoStr)
-  const fechaNacimientoDate = fechaNacimientoStr
-    ? new Date(fechaNacimientoStr)
-    : null;
-      console.log("fechaNacimientoDate", fechaNacimientoDate);*/
+  
   let fechaNacimientoDate = null;
 
   if (birthday?.date) {

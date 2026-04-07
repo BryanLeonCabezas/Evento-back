@@ -221,7 +221,7 @@ export const parseFechaLocal: any = (fecha: string) => {
 };
 
 export const formatTime = (value: any): string => {
-  console.log("Valor original:", value);
+
   if (!value) return "";
 
   const d = new Date(value);

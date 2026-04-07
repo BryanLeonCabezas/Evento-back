@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { env } from "../../config/env.js";
 
 export const hashPassword = (password: string) => {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -22,7 +23,7 @@ export const comparePassword = (password: string, storedHash: string) => {
 
 export const generateQrHash = (qrToken: string) => {
   return crypto
-    .createHmac("sha256", process.env.QR_SECRET!)
+    .createHmac("sha256", env.jwt.qrSecret!)
     .update(qrToken)
     .digest("hex");
 };

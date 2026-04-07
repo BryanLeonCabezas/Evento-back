@@ -104,6 +104,7 @@ export class EventoUsuarioService {
             tipo: "GRATUITO",
           };
         } else {
+          console.log("Evento de pago. Validando método de pago del usuario...");
           // ── CASO 2: Evento de pago ─────────────────────────────────────────
           if (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
             throw new AppError(
@@ -114,7 +115,7 @@ export class EventoUsuarioService {
           const provider = PaymentProviderFactory.create(institucion);
           paymentsService = new PaymentsService(provider);
           const mapper = GatewayMapperFactory.create(nombrePasarela);
-          debugger;
+          
           const responsePago = await paymentsService.debitar({
             userId: idUsuario,
             cardToken: tarjetaUsuario.TOKEN,

@@ -1,26 +1,20 @@
 import axios from "axios";
 import crypto from "crypto";
 import { PaymentProvider } from "../interface/payment.interface.js";
+import { env } from "../../../config/env.js";
+import e from "express";
 
 export class PaymentezProvider implements PaymentProvider {
   private appCode: string;
   private appKey: string;
-  private baseUrl = process.env.BASE_URL_STG ?? "https://dashboard-stg.paymentez.com";
+  private baseUrl = env.paymentez.baseUrl;
 
   constructor(credentials: { appCode: string; appKey: string }) {
     this.appCode = credentials?.appCode;
     this.appKey = credentials?.appKey;
-    // ya no depende del .env para las credenciales
   }
 
 
-  /*private baseUrl =
-  process.env.BASE_URL_STG || "https://dashboard-stg.paymentez.com";
-
-  private appCode = process.env.PAYMENTEZ_APP_CODE || "NUVEISTG-EC-CLIENT";
-  private appKey =
-  process.env.PAYMENTEZ_APP_KEY || "rvpKAv2tc49x6YL38fvtv5jJxRRiPs";
-*/
   private generateAuthToken() {
     const timestamp = Math.floor(Date.now() / 1000).toString();
     console.log("Generating auth token with timestamp:", timestamp);

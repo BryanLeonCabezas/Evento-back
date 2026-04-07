@@ -1,8 +1,14 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from "typeorm";
 import { UsuarioInstituciones } from "../usuarioIntituciones/entity.js";
 import { Locales } from "../locales/entity.js";
 import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
-
 
 @Index("SYS_C0012848", ["idInstitucion"], { unique: true })
 @Entity("INSTITUCIONES")
@@ -35,7 +41,11 @@ export class Instituciones {
   @Column("varchar2", { name: "USUARIO_PASARELA", nullable: true, length: 20 })
   usuarioPasarela: string | null;
 
-  @Column("varchar2", { name: "CONTRASENA_PASARELA", nullable: true, length: 20 })
+  @Column("varchar2", {
+    name: "CONTRASENA_PASARELA",
+    nullable: true,
+    length: 20,
+  })
   contrasenaPasarela: string | null;
 
   @Column("varchar2", { name: "TOKEN_PASARELA", nullable: true, length: 20 })
@@ -44,17 +54,36 @@ export class Instituciones {
   @Column("varchar2", { name: "PROVEEDOR_PAGO", nullable: true, length: 100 })
   proveedorPago: string | null;
 
+  @Column("varchar2", {
+    name: "PAYMENT_ENVIROMENT",
+    nullable: true,
+    length: 20,
+  })
+  paymentEnvironment: string | null;
+
+  @Column("varchar2", {
+    name: "APP_CODE_TOKENIZATION",
+    nullable: true,
+    length: 100,
+  })
+  applicationCode: string | null;
+
+  @Column("varchar2", {
+    name: "APP_KEY_TOKENIZATION",
+    nullable: true,
+    length: 100,
+  })
+  applicationKey: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales: Locales[];
 
   @OneToMany(
     () => UsuarioInstituciones,
-    (usuarioInstituciones) => usuarioInstituciones.idInstitucion
+    (usuarioInstituciones) => usuarioInstituciones.idInstitucion,
   )
   usuarioInstituciones: UsuarioInstituciones[];
 
   @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.institucion)
   tarjetasUsuario: TarjetasUsuario[];
-
-
 }

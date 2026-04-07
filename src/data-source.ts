@@ -11,13 +11,14 @@ import { UsuarioInstituciones } from "./modules/usuarioIntituciones/entity.js";
 import { TarjetasUsuario } from "./modules/tarjetaUsuario/entity.js";
 import { EntradasEvento } from "./modules/entradaEvento/entity.js";
 import { Pagos } from "./modules/pagos/entity.js";
+import { env } from "./config/env.js";
 export const AppDataSource = new DataSource({
   type: "oracle",
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  serviceName: process.env.DB_SERVICE,
+  host: env.db.host,
+  port: Number(env.db.port),
+  username: env.db.user,
+  password: env.db.password,
+  serviceName: env.db.serviceName,
   synchronize: false,
   logging: false,
   entities: [

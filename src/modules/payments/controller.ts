@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PaymentsService } from "./service.js";
 import { PaymentezProvider } from "./providers/paymentez.js";
+import { env } from "../../config/env.js";
 
 const service = new PaymentsService(new PaymentezProvider(
   {

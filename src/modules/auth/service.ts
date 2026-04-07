@@ -12,6 +12,7 @@ import { sendVerificationEmail } from "../../services/external/correo.js";
 import { UsuarioRepository } from "../usuario/repository.js";
 import { CrearUsuarioDto } from "./CrearUsuario.dto.js";
 import { CrearUsuarioGoogleDto } from "./dtos/CrearUsuarioGoogle.dto.js";
+import { env } from "../../config/env.js";
 import jwt from "jsonwebtoken";
 export class AuthService {
   private repoUsuario = UsuarioRepository;
@@ -119,8 +120,8 @@ export class AuthService {
 
     let token;
     console.log("Generando token para usuario:", usuario.email);
-    console.log(process.env.JWT_SECRET!);
-    console.log(process.env.JWT_REFRESH_SECRET!);
+    console.log(env.jwt.secret);
+    console.log(env.jwt.refresh);
 
     const { accessToken, refreshToken } = this.generateTokens({
       idCliente: usuario.idCliente,
@@ -223,7 +224,7 @@ export class AuthService {
     let decoded: any;
 
     try {
-      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+      decoded = jwt.verify(refreshToken, env.jwt.refresh);
       console.log("Refresh token verificado:", decoded);
     } catch (err: any) {
       if (err.name === "TokenExpiredError") {
@@ -327,11 +328,11 @@ export class AuthService {
   }
 
   generateTokens(payload: any) {
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+    const accessToken = jwt.sign(payload, env.jwt.secret, {
       expiresIn: "1h",
     });
 
-    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
+    const refreshToken = jwt.sign(payload, env.jwt.refresh, {
       expiresIn: "30d",
     });
 

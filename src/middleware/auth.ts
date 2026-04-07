@@ -1,4 +1,5 @@
 import { AppError } from "../common/utils/App.error.js";
+import { env } from "../config/env.js";
 import jwt from "jsonwebtoken";
 export const authMiddleware = (req: any, res: any, next: any) => {
   const authHeader = req.headers["authorization"];
@@ -10,8 +11,8 @@ export const authMiddleware = (req: any, res: any, next: any) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    console.log("Token verificado:", decoded);
+    const decoded = jwt.verify(token, env.jwt.secret);
+    
     (req as any).user = decoded;
     next();
   } catch (err:any) {

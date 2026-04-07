@@ -14,7 +14,7 @@ export class TarjetaUsuarioController {
   obtenerTarjetaXIdUsuario = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
     const idInstitucion = Number(req.query.idInstitucion);
-    const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetaPorIdUsuario(
+    const tarjeta = await this.tarjetaUsuarioService.obtenerTarjetasPorUsuario(
       String(idUsuario),
       idInstitucion
     );
@@ -25,7 +25,7 @@ export class TarjetaUsuarioController {
     const idCliente = req.params.idCliente;
     const paymentezResponse = req.body.paymentezResponse;
     const tarjetaReq = req.body.tarjetaReq;
-    const tarjeta = await this.tarjetaUsuarioService.guardarTarjetaPaymentez(
+    const tarjeta = await this.tarjetaUsuarioService.guardarTarjeta(
       idCliente,
       tarjetaReq,
       paymentezResponse,

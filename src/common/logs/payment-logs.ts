@@ -41,7 +41,7 @@ export class PaymentLogService {
       );
     } catch (error) {
       
-      console.error("Error guardando TARJETAS_EVENTOS_LOG", error);
+    
     }
   }
 }
