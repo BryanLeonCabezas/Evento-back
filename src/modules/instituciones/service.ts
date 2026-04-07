@@ -30,9 +30,7 @@ export class InstitucionesService {
   }
 
   async obtenerCredencialesTokenizacion(idInstitucion: number) {
-    console.log("Obteniendo credenciales de tokenización para institución", idInstitucion);
     const institucion = await this.obtenerInstitucionById(idInstitucion);
-    console.log("Institución encontrada:", institucion);
     if (!institucion.proveedorPago || !institucion.applicationCode || !institucion.applicationKey) {
       throw new AppError("La institución no tiene configuradas las credenciales de tokenización", 400);
     }

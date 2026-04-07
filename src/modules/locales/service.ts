@@ -10,7 +10,6 @@ export class LocalesService {
       .where("i.idInstitucion = :idInstitucion", { idInstitucion })
       .getMany();
 
-    console.log("locales", locales);
     if (!locales || locales.length === 0) {
       throw new AppError("Locales no encontrados", 404);
     }

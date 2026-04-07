@@ -104,7 +104,7 @@ export class EventoUsuarioService {
             tipo: "GRATUITO",
           };
         } else {
-          console.log("Evento de pago. Validando método de pago del usuario...");
+         
           // ── CASO 2: Evento de pago ─────────────────────────────────────────
           if (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
             throw new AppError(
@@ -115,7 +115,6 @@ export class EventoUsuarioService {
           const provider = PaymentProviderFactory.create(institucion);
           paymentsService = new PaymentsService(provider);
           const mapper = GatewayMapperFactory.create(nombrePasarela);
-          
           const responsePago = await paymentsService.debitar({
             userId: idUsuario,
             cardToken: tarjetaUsuario.TOKEN,
@@ -123,6 +122,7 @@ export class EventoUsuarioService {
             description: `Pago por inscripción al evento ${evento.TITULO}`,
             email: usuario.EMAIL,
           });
+
 
           transaccion = responsePago?.transaction;
           pagoNormalizado = mapper.mapDebito(responsePago);
@@ -196,7 +196,6 @@ export class EventoUsuarioService {
                 eventoUsuario: null,
               });
 
-              console.log("Reembolso exitoso:", transaccion.id);
             } catch (refundError) {
               console.error(
                 "CRITICO: Reembolso fallido:",
@@ -239,7 +238,6 @@ export class EventoUsuarioService {
     if (!idEvento || idEvento <= 0) {
       throw new AppError("ID de evento inválido", 400);
     }
-    console.log("idEvento", idEvento);
     const usuarios = await this.eventoUsuarioReposiroty
       .createQueryBuilder("eu")
       .innerJoin("eu.idCliente", "u")

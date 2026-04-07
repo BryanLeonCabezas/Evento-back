@@ -16,9 +16,6 @@ export class UsuarioInstitucionesService {
 
     if (!usuario) throw new AppError("El usuario no existe", 400);
     if (!institucion) throw new AppError("La institucion no existe", 400);
-    console.log("usuario", usuario);
-    console.log("institucion", institucion);
-
     const existeRelacion = await this.usuarioInstitucionesReposiroty.findOne({
       where: {
         idCliente: usuario.idCliente as any,
@@ -26,7 +23,6 @@ export class UsuarioInstitucionesService {
       },
     });
 
-    console.log("existeRelacion", existeRelacion);
 
     if (existeRelacion)
       throw new AppError("El usuario ya esta vinculado a la institucion", 400);

@@ -9,7 +9,6 @@ export class EventoUsuariosController {
     const idEvento = Number(req.params.idEvento);
     const idUsuario = req.params.idUsuario;
     const { observacion, idTarjeta } = req.body;
-    console.log(req.body);
     const suscripcion = await this.eventoUsuarioService.suscribirUsuario(
       idEvento,
       idUsuario,

@@ -37,9 +37,9 @@ export const validateSchema =
 export const validateParamsSchema =
   (schema: ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("req.params", req.params);
+     
       req.params = schema.parse(req.params);
-      console.log("req.params", req.params);
+     
       
 
       next();

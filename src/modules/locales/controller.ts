@@ -6,7 +6,6 @@ export class LocalesController {
 
   obtenerLocalesXInstitucion = async (req: Request, res: Response) => {
     const idInstitucion = Number(req.params.idInstitucion);
-    console.log("idInstitucion", idInstitucion);
     
     const locales = await this.localesService.obtenerLocalesXInstitucion(
       idInstitucion

@@ -25,7 +25,6 @@ export const sendVerificationEmail = async (data: {
       }
     );
 
-    console.log("Correo de verificación enviado:", response.data);
     return response.data;
   } catch (error: any) {
     console.error(

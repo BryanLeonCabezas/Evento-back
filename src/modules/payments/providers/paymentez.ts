@@ -17,7 +17,6 @@ export class PaymentezProvider implements PaymentProvider {
 
   private generateAuthToken() {
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    console.log("Generating auth token with timestamp:", timestamp);
     const uniqTokenString = this.appKey + timestamp;
 
     const uniqTokenHash = crypto
@@ -40,20 +39,17 @@ export class PaymentezProvider implements PaymentProvider {
   }
 
   async listCards(userId: string) {
-    console.log("Listing cards for userId:", userId);
-    console.log("Using baseUrl:", this.baseUrl);
     const response = await axios.get(
       `${this.baseUrl}/v2/card/list?uid=${userId}`,
       {
         headers: this.getHeaders(),
       },
     );
-    console.log("Response from Paymentez listCards:", response.data);
+
     return response.data;
   }
 
   async deleteCard(userId: string, cardToken: string) {
-    console.log("Deleting card with token:", cardToken, "for userId:", userId);
     const response = await axios.post(
       `${this.baseUrl}/v2/card/delete`,
       {
@@ -64,7 +60,6 @@ export class PaymentezProvider implements PaymentProvider {
         headers: this.getHeaders(),
       },
     );
-    console.log("Response from Paymentez deleteCard:", response.data);
     return response.data;
   }
 

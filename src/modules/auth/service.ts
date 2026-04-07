@@ -73,7 +73,7 @@ export class AuthService {
       isVerified: 0, // No verificado hasta que confirme su correo
       tokenExpira: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-    console.log("Usuario a registrar:", usuario);
+   
 
     await this.repoUsuario.save(usuario);
 
@@ -96,7 +96,6 @@ export class AuthService {
       dtoUsuarioGoogle.idToken!,
       dtoUsuarioGoogle.accessToken!,
     );
-    //console.log(usuarioGoogle);
 
     let usuario = await this.repoUsuario.findOneBy({
       email: usuarioGoogle.email,
@@ -107,7 +106,7 @@ export class AuthService {
     if (!usuario) {
       isNewUser = true;
 
-      console.log("usuarioGoogle", usuarioGoogle.fechaNacimiento);
+  
 
       usuario = this.repoUsuario.create({
         ...usuarioGoogle,
@@ -116,12 +115,9 @@ export class AuthService {
       });
     }
 
-    console.log("usuario", usuario);
+  
 
     let token;
-    console.log("Generando token para usuario:", usuario.email);
-    console.log(env.jwt.secret);
-    console.log(env.jwt.refresh);
 
     const { accessToken, refreshToken } = this.generateTokens({
       idCliente: usuario.idCliente,
@@ -150,7 +146,7 @@ export class AuthService {
   }
 
   async loginUserPassword(email: string, password: string) {
-    console.log("Login user password", email, password);
+
 
     if (!email || !password) throw new AppError("Faltan datos", 400);
 
@@ -199,10 +195,9 @@ export class AuthService {
   }
 
   async logout(idCliente: string) {
-    console.log("Logout", idCliente);
+
 
     const usuario = await this.repoUsuario.findOneBy({ idCliente });
-    console.log("usuario", usuario);
 
     if (!usuario) throw new AppError("El usuario no existe", 400);
 
@@ -219,13 +214,11 @@ export class AuthService {
     if (!refreshToken) {
       throw new AppError("Refresh token requerido", 400);
     }
-    console.log("Refresh token recibido:", refreshToken);
 
     let decoded: any;
 
     try {
       decoded = jwt.verify(refreshToken, env.jwt.refresh);
-      console.log("Refresh token verificado:", decoded);
     } catch (err: any) {
       if (err.name === "TokenExpiredError") {
         throw new AppError("Refresh token expirado", 401);

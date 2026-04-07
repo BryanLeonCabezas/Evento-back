@@ -54,7 +54,7 @@ export class TarjetaUsuarioController {
   obtenerTarjetaPredeterminada = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
     const idInstitucion = Number(req.query.idInstitucion);
-    console.log("Obteniendo tarjeta predeterminada para usuario", idUsuario);
+
     const tarjeta =
       await this.tarjetaUsuarioService.obtenerTarjetaPredeterminada(idUsuario, idInstitucion);
     res.status(200).json(tarjeta);
