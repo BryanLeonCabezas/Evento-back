@@ -4,6 +4,7 @@ import { UsuarioInstitucionesController } from "./controller.js";
 import { validateSchema } from "../../middleware/validateSchema.js";
 import { VincularInstitucionSchema } from "../../schemas/usuarioInstitucion.schema.js";
 import { authMiddleware } from "../../middleware/auth.js";
+import { verifyLimiter } from "../../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.post(
   "/vincular-usuario-institucion",
   authMiddleware,
   validateSchema(VincularInstitucionSchema),
+  verifyLimiter,
   usuariosInstitucionesController.registerUserPassword
 );
 

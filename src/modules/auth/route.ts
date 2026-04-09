@@ -9,6 +9,7 @@ import {
 import { crearUsuarioSchema } from "../../schemas/CreateUsuario.schema.js";
 import { asyncWrapper } from "../../common/utils/AsyncWrapper.js";
 import logoutSchema from "../../schemas/logout.schema.js";
+import { verifyLimiter } from "../../middleware/rateLimit.js";
 
 const router = Router();
 const authService = new AuthService();
@@ -45,7 +46,11 @@ router.get(
 
 router.post("/refresh", asyncWrapper(authController.refresh));
 
-router.get("/verify", asyncWrapper(authController.verifyAccount));
+router.get(
+  "/verify",
+  verifyLimiter,
+  asyncWrapper(authController.verifyAccount),
+);
 
 router.post(
   "/resend-verification-email",

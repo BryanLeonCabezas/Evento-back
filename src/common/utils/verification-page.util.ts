@@ -106,7 +106,7 @@ export function renderVerificationPage(
         <div class="icon-wrap">${config.icon}</div>
         <h1>${title}</h1>
         <p>${message}</p>
-        <a class="btn" href="${config.btnLink}">${config.btnText}</a>
+        <!-- <a class="btn" href="${config.btnLink}">${config.btnText}</a> -->
         <p class="footer">Si tienes problemas, contáctanos.</p>
       </div>
     </body>

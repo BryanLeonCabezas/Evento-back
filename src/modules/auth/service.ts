@@ -38,7 +38,7 @@ export class AuthService {
         await sendVerificationEmail({
           correo: exist.email,
           nombre: exist.nombre!,
-          linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${exist.idCliente}`,
+          linkVerification: `https://api-ligaprocorp.ec:3443/api/auth/verify?token=${token}&idCliente=${exist.idCliente}`,
         });
       } catch (e) {
         console.error("Error reenviando correo:", e);
@@ -81,7 +81,7 @@ export class AuthService {
     await sendVerificationEmail({
       correo: usuario.email,
       nombre: usuario.nombre!,
-      linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
+      linkVerification: `https://api-ligaprocorp.ec:3443/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
     });
 
     return {
@@ -366,7 +366,7 @@ export class AuthService {
     await sendVerificationEmail({
       correo: usuario.email,
       nombre: usuario.nombre!,
-      linkVerification: `http://localhost:3000/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
+      linkVerification: `https://api-ligaprocorp.ec:3443/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
     });
 
     return { message: "Correo de verificación reenviado correctamente." };

@@ -8,5 +8,6 @@ export class HistorialEventosXUsuarioDto {
     horaFin?:string;
     estado?: EstadoEventoUsuario
     imgUrl?: string;
+    precio?: number;
   }
   

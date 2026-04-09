@@ -47,6 +47,7 @@ export class EventoUsuarioService {
       horaFin: formatTime(evento.HORAFIN),
       estado: evento.ESTADO as EstadoEventoUsuario,
       imgUrl: evento.IMGURL,
+      precio: evento.PRECIO,
     };
   }
 
@@ -310,6 +311,7 @@ export class EventoUsuarioService {
         "e.horaFin AS horaFin",
         "e.imagenUrl AS imgUrl",
         "eu.estado AS estado",
+        "e.precio AS precio",
       ])
       .orderBy("e.horaInicio", "ASC")
       .getRawMany();
@@ -341,6 +343,7 @@ export class EventoUsuarioService {
         "e.imagenUrl AS imgUrl",
         "eu.estado AS estado",
         "eu.asistio AS asistio",
+        "e.precio AS precio",
       ])
       .orderBy("e.horaInicio", "DESC")
       .getRawMany();
