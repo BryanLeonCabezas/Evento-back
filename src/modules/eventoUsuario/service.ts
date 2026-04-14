@@ -356,7 +356,7 @@ export class EventoUsuarioService {
       historial: historial.map((e) => ({
         ...this.mapToHistorialEventosXUsuarioDto(e),
         estadoTexto:
-          e.ASISTIO === true
+          e.ASISTIO === EstadoEventoUsuario.ASISTIO
             ? "Asistió"
             : e.ESTADO === EstadoEventoUsuario.CANCELADO
               ? "Cancelado"
