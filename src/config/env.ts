@@ -21,6 +21,8 @@ export const env = {
     refresh: process.env.JWT_REFRESH_SECRET!,
     qrSecret: process.env.QR_SECRET!,
     googleClientId: process.env.GOOGLE_CLIENT_ID!,
+    gooogleClientIdIOS: process.env.GOOGLE_CLIENT_ID_IOS!,
+    googleClientIdAndroid: process.env.GOOGLE_CLIENT_ID_ANDROID!,
   },
 
   db: {

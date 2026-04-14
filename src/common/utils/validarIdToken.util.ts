@@ -20,22 +20,25 @@ const genderMap: Record<string, GeneroEnum> = {
 
 export const validarIdTokenGoogle = async (
   idToken: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<UsuarioDto> => {
   let ticket;
   try {
     ticket = await client.verifyIdToken({
       idToken,
-      audience: env.jwt.googleClientId,
+      audience: [
+        env.jwt.googleClientId,
+        env.jwt.gooogleClientIdIOS,
+        env.jwt.googleClientIdAndroid,
+      ],
     });
   } catch (error: any) {
     throw new AppError(
       "Token de Google inválido o expirado",
       401,
-      error.message
+      error.message,
     );
   }
-
 
   const payload = ticket.getPayload();
   if (!payload) throw new Error("Token inválido");
@@ -61,7 +64,7 @@ export const validarIdTokenGoogle = async (
       "No se pudo obtener los datos del perfil de Google",
       401,
       "GOOGLE_OAUTH_ACCESS_DENIED",
-      error.response?.data ?? null
+      error.response?.data ?? null,
     );
   }
 
@@ -75,7 +78,6 @@ export const validarIdTokenGoogle = async (
   const birthday =
     person.birthdays?.find((b) => b.date?.year) || person.birthdays?.[0];
 
-  
   let fechaNacimientoDate = null;
 
   if (birthday?.date) {
