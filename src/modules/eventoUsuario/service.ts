@@ -105,7 +105,7 @@ export class EventoUsuarioService {
             tipo: "GRATUITO",
           };
         } else {
-         
+
           // ── CASO 2: Evento de pago ─────────────────────────────────────────
           if (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
             throw new AppError(
@@ -258,35 +258,73 @@ export class EventoUsuarioService {
     };
   }
 
-  async obtenerEventosSuscritosXUsuario(idUsuario: string) {
-    if (!idUsuario || idUsuario.trim() === "") {
+  async obtenerEventosUsuario(idUsuario: string) {
+    if (!idUsuario?.trim()) {
       throw new AppError("ID de usuario inválido", 400);
     }
 
-    const eventos = await this.eventoUsuarioReposiroty
-      .createQueryBuilder("eu")
-      .innerJoin("eu.idEvento", "e")
-      .innerJoin("eu.idCliente", "u")
-      .where("u.idCliente = :idCliente", { idCliente: idUsuario })
-      .andWhere("eu.estado = 'A'")
-      .select([
-        "e.idEvento AS idEvento",
-        "e.titulo AS titulo",
-        "e.fechaEvento AS fechaEvento",
-      ])
-      .getRawMany();
+    const baseQuery = () =>
+      this.eventoUsuarioRepository
+        .createQueryBuilder("eu")
+        .innerJoin("eu.idEvento", "e")
+        .innerJoin("eu.idCliente", "u")
+        .where("u.idCliente = :idCliente", { idCliente: idUsuario })
+        .select([
+          "e.idEvento       AS idEvento",
+          "e.titulo         AS titulo",
+          "e.fechaEvento    AS fechaEvento",
+          "e.horaInicio     AS horaInicio",
+          "e.horaFin        AS horaFin",
+          "e.imagenUrl      AS imgUrl",
+          "e.precio         AS precio",
+          "eu.estado        AS estado",
+          "eu.asistio       AS asistio",
+          "eu.fechaEntrada  AS fechaEntrada",
+        ]);
 
-    if (!eventos || eventos.length === 0) {
-      return {
-        message: "El usuario no tiene eventos suscritos",
-        data: [],
-      };
-    }
+    const [proximosRaw, historialRaw] = await Promise.all([
+      baseQuery()
+        .andWhere("eu.estado = :estado", { estado: EstadoEventoUsuario.SUSCRITO })
+        .andWhere("e.horaFin > SYSDATE")
+        .orderBy("e.horaInicio", "ASC")
+        .getRawMany(),
+
+      baseQuery()
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where("eu.estado IN (:...estados)", {
+              estados: [
+                EstadoEventoUsuario.ASISTIO,
+                EstadoEventoUsuario.NO_ASISTIO,
+                EstadoEventoUsuario.CANCELADO,
+              ],
+            }).orWhere("eu.estado = :suscrito AND e.horaFin <= SYSDATE", {
+              suscrito: EstadoEventoUsuario.SUSCRITO,
+            });
+          }),
+        )
+        .orderBy("e.horaInicio", "DESC")
+        .getRawMany(),
+    ]);
 
     return {
-      total: eventos.length,
-      data: eventos,
+      proximos: proximosRaw.map((e) => ({
+        ...this.mapToHistorialEventosXUsuarioDto(e),
+        tiempoRestante: this.calcularTiempoRestante(new Date(e.HORAINICIO)),
+      })),
+      historial: historialRaw.map((e) => ({
+        ...this.mapToHistorialEventosXUsuarioDto(e),
+        estadoTexto: this.resolverEstadoTexto(e.ESTADO, e.ASISTIO),
+      })),
     };
+  }
+
+  private resolverEstadoTexto(estado: string, asistio: string): string {
+    if (estado === EstadoEventoUsuario.CANCELADO) return "Cancelado";
+    if (asistio === AsistioFlag.SI) return "Asistió";
+    if (asistio === AsistioFlag.NO) return "No asistió";
+    // Suscrito con evento ya finalizado pero sin marca de asistencia registrada
+    return "Sin confirmar";
   }
 
   async obtenerEventosUsuario(idUsuario: string) {
@@ -384,7 +422,7 @@ export class EventoUsuarioService {
     );
     const diasCalendario = Math.round(
       (eventoCalendario.getTime() - hoyCalendario.getTime()) /
-        (1000 * 60 * 60 * 24),
+      (1000 * 60 * 60 * 24),
     );
 
     if (diasCalendario > 1) return `En ${diasCalendario} días`;
