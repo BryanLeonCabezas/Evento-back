@@ -29,6 +29,7 @@ import { PaymentProviderFactory } from "../payments/factory.js";
 import { PagosService } from "../pagos/service.js";
 import { GatewayMapperFactory } from "../pagos/mappers/gateway-mapper.factory.js";
 import { PagoNormalizado } from "../pagos/dto/pago-normalizado.dto.js";
+import { sendCompraEmail } from "../../services/external/correo.js";
 
 export class EventoUsuarioService {
   private readonly eventoUsuarioRepository = eventoUsuarioRepository;
@@ -103,7 +104,7 @@ export class EventoUsuarioService {
     observacion?: string,
     idTarjeta?: number,
   ) {
-    return await this.eventoUsuarioRepository.manager.transaction(
+    const resultado = await this.eventoUsuarioRepository.manager.transaction(
       async (manager: any) => {
         const [
           evento,
@@ -161,7 +162,7 @@ export class EventoUsuarioService {
           const provider = PaymentProviderFactory.create(institucion);
           paymentsService = new PaymentsService(provider);
           const mapper = GatewayMapperFactory.create(nombrePasarela);
-          
+
           const responsePago = await paymentsService.debitar({
             userId: idUsuario,
             cardToken: tarjetaUsuario.TOKEN,
@@ -220,6 +221,13 @@ export class EventoUsuarioService {
               transaccionId: transaccion?.id ?? null,
             },
             success: true,
+            extra: {
+              correo: usuario.EMAIL,
+              nombre: usuario.NOMBRE,
+              evento: evento.TITULO,
+              monto: precioEvento,
+              transaccionId: transaccion?.id ?? null,
+            },
           };
         } catch (error) {
           // ── CASO 4: Pago OK pero falló la BD → reembolsar y registrar ──────
@@ -259,6 +267,29 @@ export class EventoUsuarioService {
         }
       },
     );
+
+    try {
+      sendCompraEmail({
+        correo: resultado.extra.correo,
+        nombre: resultado.extra.nombre,
+        evento: resultado.extra.evento,
+        estado: resultado.extra.monto === 0 ? "GRATUITO" : "PAGADO",
+        monto:
+          resultado.extra.monto === 0
+            ? "$0.00"
+            : `$${resultado.extra.monto}`,
+        transaccionId: resultado.extra.transaccionId,
+      }).catch(() => { }); // no romper flujo
+    } catch (e) {
+      console.error("Error enviando correo:", e);
+    }
+
+    // 🔹 3. Devuelves respuesta limpia
+    return {
+      message: resultado.message,
+      data: resultado.data,
+      success: resultado.success,
+    };
   }
 
   async eliminarSuscripcion(idEvento: number, idUsuario: string) {
