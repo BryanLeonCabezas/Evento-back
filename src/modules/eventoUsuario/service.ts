@@ -31,8 +31,8 @@ import { GatewayMapperFactory } from "../pagos/mappers/gateway-mapper.factory.js
 import { PagoNormalizado } from "../pagos/dto/pago-normalizado.dto.js";
 
 export class EventoUsuarioService {
-  private eventoUsuarioRepository = eventoUsuarioRepository;
-  private pagosService = new PagosService();
+  private readonly eventoUsuarioRepository = eventoUsuarioRepository;
+  private readonly pagosService = new PagosService();
 
   //private paymentezProvider = new PaymentezProvider();
 
@@ -51,6 +51,51 @@ export class EventoUsuarioService {
     };
   }
 
+  private resolverEstadoTexto(estado: string): string {
+    switch (estado) {
+      case EstadoEventoUsuario.ASISTIO: return "Asistió";
+      case EstadoEventoUsuario.NO_ASISTIO: return "No asistió";
+      case EstadoEventoUsuario.CANCELADO: return "Cancelado";
+      default: return "Sin confirmar";
+    }
+  }
+
+  private calcularTiempoRestante = (fechaEvento: Date): string => {
+    const ahora = new Date();
+    const diffMs = fechaEvento.getTime() - ahora.getTime();
+
+    if (diffMs <= 0) return "Ahora";
+
+    // Comparar por fecha de calendario (sin hora)
+    const hoyCalendario = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth(),
+      ahora.getDate(),
+    );
+    const eventoCalendario = new Date(
+      fechaEvento.getFullYear(),
+      fechaEvento.getMonth(),
+      fechaEvento.getDate(),
+    );
+    const diasCalendario = Math.round(
+      (eventoCalendario.getTime() - hoyCalendario.getTime()) /
+      (1000 * 60 * 60 * 24),
+    );
+
+    if (diasCalendario > 1) return `En ${diasCalendario} días`;
+    if (diasCalendario === 1) return "Mañana";
+
+    // Solo si es hoy, calcular horas/minutos
+    const horas = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutos = Math.floor(diffMs / (1000 * 60));
+
+    if (horas > 1) return `En ${horas} horas`;
+    if (horas === 1) return "En 1 hora";
+    if (minutos > 1) return `En ${minutos} minutos`;
+
+    return "En breve";
+  };
+
   async suscribirUsuario(
     idEvento: number,
     idUsuario: string,
@@ -59,7 +104,7 @@ export class EventoUsuarioService {
     idTarjeta?: number,
   ) {
     return await this.eventoUsuarioRepository.manager.transaction(
-      async (manager:any) => {
+      async (manager: any) => {
         const [
           evento,
           institucion,
@@ -116,6 +161,7 @@ export class EventoUsuarioService {
           const provider = PaymentProviderFactory.create(institucion);
           paymentsService = new PaymentsService(provider);
           const mapper = GatewayMapperFactory.create(nombrePasarela);
+          
           const responsePago = await paymentsService.debitar({
             userId: idUsuario,
             cardToken: tarjetaUsuario.TOKEN,
@@ -177,7 +223,7 @@ export class EventoUsuarioService {
           };
         } catch (error) {
           // ── CASO 4: Pago OK pero falló la BD → reembolsar y registrar ──────
-          if (transaccion?.id) {
+          if (precioEvento > 0 && transaccion?.id && paymentsService) {
             try {
               const mapper = GatewayMapperFactory.create(nombrePasarela);
               const responseReembolso = await paymentsService!.reembolsar({
@@ -244,7 +290,7 @@ export class EventoUsuarioService {
       .innerJoin("eu.idCliente", "u")
       .innerJoin("eu.idEvento", "e")
       .where("e.idEvento = :idEvento", { idEvento })
-      .andWhere("eu.estado = 'A'")
+      .andWhere("eu.estado = :estado", { estado: EstadoEventoUsuario.SUSCRITO })
       .select([
         "u.idCliente AS idCliente",
         "u.nombre AS nombre",
@@ -339,59 +385,18 @@ export class EventoUsuarioService {
     ]);
 
     return {
-      proximos: proximosRaw.map((e:any) => ({
+      proximos: proximosRaw.map((e: any) => ({
         ...this.mapToHistorialEventosXUsuarioDto(e),
         tiempoRestante: this.calcularTiempoRestante(new Date(e.HORAINICIO)),
       })),
-      historial: historialRaw.map((e:any) => ({
+      historial: historialRaw.map((e: any) => ({
         ...this.mapToHistorialEventosXUsuarioDto(e),
         estadoTexto: this.resolverEstadoTexto(e.ESTADO),
       })),
     };
   }
 
-  private resolverEstadoTexto(estado: string): string {
-    switch (estado) {
-      case EstadoEventoUsuario.ASISTIO: return "Asistió";
-      case EstadoEventoUsuario.NO_ASISTIO: return "No asistió";
-      case EstadoEventoUsuario.CANCELADO: return "Cancelado";
-      default: return "Sin confirmar";
-    }
-  }
 
-  private calcularTiempoRestante = (fechaEvento: Date): string => {
-    const ahora = new Date();
-    const diffMs = fechaEvento.getTime() - ahora.getTime();
 
-    if (diffMs <= 0) return "Ahora";
 
-    // Comparar por fecha de calendario (sin hora)
-    const hoyCalendario = new Date(
-      ahora.getFullYear(),
-      ahora.getMonth(),
-      ahora.getDate(),
-    );
-    const eventoCalendario = new Date(
-      fechaEvento.getFullYear(),
-      fechaEvento.getMonth(),
-      fechaEvento.getDate(),
-    );
-    const diasCalendario = Math.round(
-      (eventoCalendario.getTime() - hoyCalendario.getTime()) /
-      (1000 * 60 * 60 * 24),
-    );
-
-    if (diasCalendario > 1) return `En ${diasCalendario} días`;
-    if (diasCalendario === 1) return "Mañana";
-
-    // Solo si es hoy, calcular horas/minutos
-    const horas = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutos = Math.floor(diffMs / (1000 * 60));
-
-    if (horas > 1) return `En ${horas} horas`;
-    if (horas === 1) return "En 1 hora";
-    if (minutos > 1) return `En ${minutos} minutos`;
-
-    return "En breve";
-  };
 }
