@@ -12,7 +12,7 @@ import {
   obtenerUsuario,
   usuarioYaInscrito,
 } from "./query.js";
-import { eventoUsuarioReposiroty } from "./repository.js";
+import { eventoUsuarioRepository } from "./repository.js";
 import { Transactional } from "typeorm-transactional";
 import { log } from "console";
 import { HistorialEventosXUsuarioDto } from "./dto.js";
@@ -31,7 +31,7 @@ import { GatewayMapperFactory } from "../pagos/mappers/gateway-mapper.factory.js
 import { PagoNormalizado } from "../pagos/dto/pago-normalizado.dto.js";
 
 export class EventoUsuarioService {
-  private eventoUsuarioReposiroty = eventoUsuarioReposiroty;
+  private eventoUsuarioRepository = eventoUsuarioRepository;
   private pagosService = new PagosService();
 
   //private paymentezProvider = new PaymentezProvider();
@@ -58,8 +58,8 @@ export class EventoUsuarioService {
     observacion?: string,
     idTarjeta?: number,
   ) {
-    return await this.eventoUsuarioReposiroty.manager.transaction(
-      async (manager) => {
+    return await this.eventoUsuarioRepository.manager.transaction(
+      async (manager:any) => {
         const [
           evento,
           institucion,
@@ -216,7 +216,7 @@ export class EventoUsuarioService {
   }
 
   async eliminarSuscripcion(idEvento: number, idUsuario: string) {
-    const result = await this.eventoUsuarioReposiroty.manager
+    const result = await this.eventoUsuarioRepository.manager
       .createQueryBuilder()
       .update("EVENTOS_USUARIOS")
       .set({
@@ -239,7 +239,7 @@ export class EventoUsuarioService {
     if (!idEvento || idEvento <= 0) {
       throw new AppError("ID de evento inválido", 400);
     }
-    const usuarios = await this.eventoUsuarioReposiroty
+    const usuarios = await this.eventoUsuarioRepository
       .createQueryBuilder("eu")
       .innerJoin("eu.idCliente", "u")
       .innerJoin("eu.idEvento", "e")
@@ -255,6 +255,37 @@ export class EventoUsuarioService {
     return {
       total: usuarios.length,
       data: usuarios,
+    };
+  }
+
+  async obtenerEventosSuscritosXUsuario(idUsuario: string) {
+    if (!idUsuario || idUsuario.trim() === "") {
+      throw new AppError("ID de usuario inválido", 400);
+    }
+
+    const eventos = await this.eventoUsuarioRepository
+      .createQueryBuilder("eu")
+      .innerJoin("eu.idEvento", "e")
+      .innerJoin("eu.idCliente", "u")
+      .where("u.idCliente = :idCliente", { idCliente: idUsuario })
+      .andWhere("eu.estado = 'A'")
+      .select([
+        "e.idEvento AS idEvento",
+        "e.titulo AS titulo",
+        "e.fechaEvento AS fechaEvento",
+      ])
+      .getRawMany();
+
+    if (!eventos || eventos.length === 0) {
+      return {
+        message: "El usuario no tiene eventos suscritos",
+        data: [],
+      };
+    }
+
+    return {
+      total: eventos.length,
+      data: eventos,
     };
   }
 
@@ -308,99 +339,24 @@ export class EventoUsuarioService {
     ]);
 
     return {
-      proximos: proximosRaw.map((e) => ({
+      proximos: proximosRaw.map((e:any) => ({
         ...this.mapToHistorialEventosXUsuarioDto(e),
         tiempoRestante: this.calcularTiempoRestante(new Date(e.HORAINICIO)),
       })),
-      historial: historialRaw.map((e) => ({
+      historial: historialRaw.map((e:any) => ({
         ...this.mapToHistorialEventosXUsuarioDto(e),
-        estadoTexto: this.resolverEstadoTexto(e.ESTADO, e.ASISTIO),
+        estadoTexto: this.resolverEstadoTexto(e.ESTADO),
       })),
     };
   }
 
-  private resolverEstadoTexto(estado: string, asistio: string): string {
-    if (estado === EstadoEventoUsuario.CANCELADO) return "Cancelado";
-    if (asistio === AsistioFlag.SI) return "Asistió";
-    if (asistio === AsistioFlag.NO) return "No asistió";
-    // Suscrito con evento ya finalizado pero sin marca de asistencia registrada
-    return "Sin confirmar";
-  }
-
-  async obtenerEventosUsuario(idUsuario: string) {
-    if (!idUsuario || idUsuario.trim() === "") {
-      throw new AppError("ID de usuario inválido", 400);
+  private resolverEstadoTexto(estado: string): string {
+    switch (estado) {
+      case EstadoEventoUsuario.ASISTIO: return "Asistió";
+      case EstadoEventoUsuario.NO_ASISTIO: return "No asistió";
+      case EstadoEventoUsuario.CANCELADO: return "Cancelado";
+      default: return "Sin confirmar";
     }
-
-    const ahora = new Date();
-
-    const proximos = await this.eventoUsuarioReposiroty
-      .createQueryBuilder("eu")
-      .innerJoin("eu.idEvento", "e")
-      .innerJoin("eu.idCliente", "u")
-      .where("u.idCliente = :idCliente", { idCliente: idUsuario })
-      .andWhere("eu.estado = :estado", { estado: EstadoEventoUsuario.SUSCRITO })
-      .andWhere("e.horaFin > SYSDATE")
-      .select([
-        "e.idEvento AS idEvento",
-        "e.titulo AS titulo",
-        "e.fechaEvento AS fechaEvento",
-        "e.horaInicio AS horaInicio",
-        "e.horaFin AS horaFin",
-        "e.imagenUrl AS imgUrl",
-        "eu.estado AS estado",
-        "e.precio AS precio",
-      ])
-      .orderBy("e.horaInicio", "ASC")
-      .getRawMany();
-
-    const historial = await this.eventoUsuarioReposiroty
-      .createQueryBuilder("eu")
-      .innerJoin("eu.idEvento", "e")
-      .innerJoin("eu.idCliente", "u")
-      .where("u.idCliente = :idCliente", { idCliente: idUsuario })
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("eu.estado IN (:...estados)", {
-            estados: [
-              EstadoEventoUsuario.ASISTIO,
-              EstadoEventoUsuario.NO_ASISTIO,
-              EstadoEventoUsuario.CANCELADO,
-            ],
-          }).orWhere("eu.estado = :suscrito AND e.horaFin <= SYSDATE", {
-            suscrito: EstadoEventoUsuario.SUSCRITO,
-          });
-        }),
-      )
-      .select([
-        "e.idEvento AS idEvento",
-        "e.titulo AS titulo",
-        "e.fechaEvento AS fechaEvento",
-        "e.horaInicio AS horaInicio",
-        "e.horaFin AS horaFin",
-        "e.imagenUrl AS imgUrl",
-        "eu.estado AS estado",
-        "eu.asistio AS asistio",
-        "e.precio AS precio",
-      ])
-      .orderBy("e.horaInicio", "DESC")
-      .getRawMany();
-
-    return {
-      proximos: proximos.map((e) => ({
-        ...this.mapToHistorialEventosXUsuarioDto(e),
-        tiempoRestante: this.calcularTiempoRestante(new Date(e.HORAINICIO)),
-      })),
-      historial: historial.map((e) => ({
-        ...this.mapToHistorialEventosXUsuarioDto(e),
-        estadoTexto:
-          e.ASISTIO === EstadoEventoUsuario.ASISTIO
-            ? "Asistió"
-            : e.ESTADO === EstadoEventoUsuario.CANCELADO
-              ? "Cancelado"
-              : "No asistió",
-      })),
-    };
   }
 
   private calcularTiempoRestante = (fechaEvento: Date): string => {
