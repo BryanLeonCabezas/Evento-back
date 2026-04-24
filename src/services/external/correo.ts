@@ -62,7 +62,7 @@ export const sendCompraEmail = async (data: {
       error?.response?.data || error.message
     );
 
-    // 👇 NO lances error para no romper flujo de inscripción
+    //  NO lances error para no romper flujo de inscripción
     return null;
   }
 };

@@ -7,15 +7,24 @@ import e from "express";
 export class PaymentezProvider implements PaymentProvider {
   private appCode: string;
   private appKey: string;
+  private appCodeCheckout: string;
+  private appKeyCheckout: string;
   private baseUrl = env.paymentez.baseUrl;
 
-  constructor(credentials: { appCode: string; appKey: string }) {
+  constructor(credentials: {
+    appCode: string;
+    appKey: string;
+    appCodeCheckout: string;
+    appKeyCheckout: string;
+  }) {
     this.appCode = credentials?.appCode;
     this.appKey = credentials?.appKey;
+    this.appCodeCheckout = credentials.appCodeCheckout;
+    this.appKeyCheckout = credentials.appKeyCheckout;
+    console.log("credentials:", credentials);
   }
 
-
-  private generateAuthToken() {
+  /*private generateAuthToken() {
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const uniqTokenString = this.appKey + timestamp;
 
@@ -29,14 +38,32 @@ export class PaymentezProvider implements PaymentProvider {
     ).toString("base64");
 
     return authToken;
+  }*/
+
+  private generateAuthToken(appCode: string, appKey: string): string {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const hash = crypto
+      .createHash("sha256")
+      .update(appKey + timestamp)
+      .digest("hex");
+    return Buffer.from(`${appCode};${timestamp};${hash}`).toString("base64");
   }
 
-  private getHeaders() {
+  private getHeaders(type: "server" | "checkout" = "server") {
+    const appCode = type === "checkout" ? this.appCodeCheckout : this.appCode;
+    const appKey = type === "checkout" ? this.appKeyCheckout : this.appKey;
+    return {
+      "Auth-Token": this.generateAuthToken(appCode, appKey),
+      "Content-Type": "application/json",
+    };
+  }
+
+  /* private getHeaders() {
     return {
       "Auth-Token": this.generateAuthToken(),
       "Content-Type": "application/json",
     };
-  }
+  }*/
 
   async listCards(userId: string) {
     const response = await axios.get(
@@ -69,6 +96,7 @@ export class PaymentezProvider implements PaymentProvider {
     amount: number;
     description: string;
     email: string;
+    devReference: string;
   }) {
     const response = await axios.post(
       `${this.baseUrl}/v2/transaction/debit/`,
@@ -80,7 +108,7 @@ export class PaymentezProvider implements PaymentProvider {
         order: {
           amount: data.amount,
           description: data.description,
-          dev_reference: `ORDER-${Date.now()}`,
+          dev_reference: data.devReference,
           vat: 0,
           tax_percentage: 0,
         },
@@ -122,5 +150,40 @@ export class PaymentezProvider implements PaymentProvider {
     );
 
     return response.data;
+  }
+
+  async initReference(data: {
+    locale: string;
+    userId: string;
+    userEmail: string;
+    amount: number;
+    description: string;
+    devReference: string;
+    vat?: number;
+    installmentsType?: number;
+  }): Promise<{ reference: string; checkout_url: string }> {
+    console.log(data);
+    const body = {
+      locale: data.locale,
+      order: {
+        amount: parseFloat(Number(data.amount ?? 0).toFixed(2)),
+        description: data.description,
+        dev_reference: data.devReference,
+        vat: data.vat ?? 0,
+        installments_type: data.installmentsType ?? 0,
+      },
+      user: {
+        id: data.userId,
+        email: data.userEmail,
+      },
+    };
+
+    const response = await axios.post(
+      `${this.baseUrl}/v2/transaction/init_reference/`,
+      body,
+      { headers: this.getHeaders("checkout") },
+    );
+
+    return response.data; // { reference: string, checkout_url: string }
   }
 }

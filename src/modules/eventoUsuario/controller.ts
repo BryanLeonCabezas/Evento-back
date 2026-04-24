@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { EventoUsuarioService } from "./service.js";
 import { EventosUsuarios } from "./entity.js";
 
@@ -14,7 +14,7 @@ export class EventoUsuariosController {
       idUsuario,
       undefined,
       observacion,
-      idTarjeta
+      idTarjeta,
     );
     res.status(200).json(suscripcion);
   };
@@ -25,7 +25,7 @@ export class EventoUsuariosController {
 
     const desuscripcion = await this.eventoUsuarioService.eliminarSuscripcion(
       idEvento,
-      idUsuario
+      idUsuario,
     );
     res.status(200).json(desuscripcion);
   };
@@ -40,9 +40,48 @@ export class EventoUsuariosController {
   obtenerEventosXUsuario = async (req: Request, res: Response) => {
     const idUsuario = req.params.idUsuario;
     const eventos =
-      await this.eventoUsuarioService.obtenerEventosUsuario(
-        idUsuario
-      );
+      await this.eventoUsuarioService.obtenerEventosUsuario(idUsuario);
     res.status(200).json(eventos);
+  };
+
+  initCheckout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { idEvento } = req.params;
+      const { idUsuario } = req.body;
+      const result = await this.eventoUsuarioService.initCheckout(
+        Number(idEvento),
+        idUsuario,
+      );
+      res.json(result);
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  confirmarCheckout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { idEvento } = req.params;
+      const { idUsuario, transactionId } = req.body;
+      const result = await this.eventoUsuarioService.confirmarCheckout(
+        Number(idEvento),
+        idUsuario,
+        transactionId,
+      );
+
+      // mismo bloque de correo que suscribirUsuario
+      //sendCompraEmail({ ...result.extra }).catch(() => {});
+
+      res.json({
+        message: result.message,
+        data: result.data,
+        success: result.success,
+      });
+    } catch (e) {
+      next(e);
+    }
   };
 }

@@ -30,6 +30,7 @@ import { PagosService } from "../pagos/service.js";
 import { GatewayMapperFactory } from "../pagos/mappers/gateway-mapper.factory.js";
 import { PagoNormalizado } from "../pagos/dto/pago-normalizado.dto.js";
 import { sendCompraEmail } from "../../services/external/correo.js";
+import { generarDevReference } from "../../common/utils/dev_reference.utils.js";
 
 export class EventoUsuarioService {
   private readonly eventoUsuarioRepository = eventoUsuarioRepository;
@@ -54,10 +55,14 @@ export class EventoUsuarioService {
 
   private resolverEstadoTexto(estado: string): string {
     switch (estado) {
-      case EstadoEventoUsuario.ASISTIO: return "Asistió";
-      case EstadoEventoUsuario.NO_ASISTIO: return "No asistió";
-      case EstadoEventoUsuario.CANCELADO: return "Cancelado";
-      default: return "Sin confirmar";
+      case EstadoEventoUsuario.ASISTIO:
+        return "Asistió";
+      case EstadoEventoUsuario.NO_ASISTIO:
+        return "No asistió";
+      case EstadoEventoUsuario.CANCELADO:
+        return "Cancelado";
+      default:
+        return "Sin confirmar";
     }
   }
 
@@ -80,7 +85,7 @@ export class EventoUsuarioService {
     );
     const diasCalendario = Math.round(
       (eventoCalendario.getTime() - hoyCalendario.getTime()) /
-      (1000 * 60 * 60 * 24),
+        (1000 * 60 * 60 * 24),
     );
 
     if (diasCalendario > 1) return `En ${diasCalendario} días`;
@@ -151,7 +156,6 @@ export class EventoUsuarioService {
             tipo: "GRATUITO",
           };
         } else {
-
           // ── CASO 2: Evento de pago ─────────────────────────────────────────
           if (!tarjetaUsuario || Object.keys(tarjetaUsuario).length === 0)
             throw new AppError(
@@ -169,8 +173,8 @@ export class EventoUsuarioService {
             amount: precioEvento,
             description: `Pago por inscripción al evento ${evento.TITULO}`,
             email: usuario.EMAIL,
+            devReference: generarDevReference(idEvento, idUsuario),
           });
-
 
           transaccion = responsePago?.transaction;
           pagoNormalizado = mapper.mapDebito(responsePago);
@@ -250,7 +254,6 @@ export class EventoUsuarioService {
                 idCliente: idUsuario,
                 eventoUsuario: null,
               });
-
             } catch (refundError) {
               console.error(
                 "CRITICO: Reembolso fallido:",
@@ -275,11 +278,9 @@ export class EventoUsuarioService {
         evento: resultado.extra.evento,
         estado: resultado.extra.monto === 0 ? "GRATUITO" : "PAGADO",
         monto:
-          resultado.extra.monto === 0
-            ? "$0.00"
-            : `$${resultado.extra.monto}`,
+          resultado.extra.monto === 0 ? "$0.00" : `$${resultado.extra.monto}`,
         transaccionId: resultado.extra.transaccionId,
-      }).catch(() => { }); // no romper flujo
+      }).catch(() => {}); // no romper flujo
     } catch (e) {
       console.error("Error enviando correo:", e);
     }
@@ -392,7 +393,9 @@ export class EventoUsuarioService {
 
     const [proximosRaw, historialRaw] = await Promise.all([
       baseQuery()
-        .andWhere("eu.estado = :estado", { estado: EstadoEventoUsuario.SUSCRITO })
+        .andWhere("eu.estado = :estado", {
+          estado: EstadoEventoUsuario.SUSCRITO,
+        })
         .andWhere("e.horaFin > SYSDATE")
         .orderBy("e.horaInicio", "ASC")
         .getRawMany(),
@@ -427,7 +430,133 @@ export class EventoUsuarioService {
     };
   }
 
+  // ── CHECKOUT: Paso 1 — crear reference ────────────────────────────────
+  async initCheckout(idEvento: number, idUsuario: string) {
+    const manager = this.eventoUsuarioRepository.manager;
 
+    const [
+      evento,
+      institucion,
+      usuario,
+      usuarioInscrito,
+      inscritosAlEvento,
+      publicoEsperado,
+    ] = await Promise.all([
+      obtenerEvento(manager, idEvento),
+      obtenerDatosInstitucion(manager, idEvento),
+      obtenerUsuario(manager, idUsuario),
+      usuarioYaInscrito(manager, idEvento, idUsuario),
+      contarInscritos(manager, idEvento),
+      obtenerPublicoEsperado(manager, idEvento),
+    ]);
 
+    if (!evento) throw new AppError("Evento no encontrado", 404);
+    if (usuarioInscrito)
+      throw new AppError("El usuario ya está suscrito a este evento", 400);
+    if (Number(evento.PRECIO) === 0)
+      throw new AppError("El evento es gratuito, usa el flujo normal", 400);
+    if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
+      throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
 
+    const devReference = generarDevReference(idEvento, idUsuario);
+    const provider = PaymentProviderFactory.create(institucion);
+    const paymentsService = new PaymentsService(provider);
+
+    const result = await paymentsService.initReference({
+      locale: "es",
+      userId: idUsuario,
+      userEmail: usuario.EMAIL,
+      amount: Number(evento.PRECIO),
+      description: `Inscripción: ${evento.TITULO}`,
+      devReference,
+      vat: 0,
+      installmentsType: 0,
+    });
+
+    return {
+      reference: result.reference,
+      envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
+    };
+  }
+
+  // ── CHECKOUT: Paso 2 — confirmar con transactionId ────────────────────
+  async confirmarCheckout(
+    idEvento: number,
+    idUsuario: string,
+    transactionId: string,
+  ) {
+    return await this.eventoUsuarioRepository.manager.transaction(
+      async (manager: any) => {
+        const [
+          evento,
+          institucion,
+          usuario,
+          usuarioInscrito,
+          inscritosAlEvento,
+          publicoEsperado,
+        ] = await Promise.all([
+          obtenerEvento(manager, idEvento),
+          obtenerDatosInstitucion(manager, idEvento),
+          obtenerUsuario(manager, idUsuario),
+          usuarioYaInscrito(manager, idEvento, idUsuario),
+          contarInscritos(manager, idEvento),
+          obtenerPublicoEsperado(manager, idEvento),
+        ]);
+
+        if (!evento) throw new AppError("Evento no encontrado", 404);
+        if (usuarioInscrito)
+          throw new AppError("El usuario ya está suscrito a este evento", 400);
+        if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
+          throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
+
+        // ── Igual que suscribirUsuario pero con mapCheckout ──────────────────
+        const nombrePasarela = institucion.PROVEEDOR_PAGO ?? "paymentez";
+        const mapper = GatewayMapperFactory.create(nombrePasarela);
+        const pagoNormalizado = mapper.mapCheckout(
+          transactionId,
+          Number(evento.PRECIO),
+        );
+
+        try {
+          const nuevoRegistro = manager.create(EventosUsuarios, {
+            idEvento: { idEvento },
+            idCliente: { idCliente: idUsuario },
+            estado: EstadoEventoUsuario.SUSCRITO,
+            qrToken: generarCodigoQR("TCK"),
+          });
+
+          const eventoUsuarioGuardado = await manager.save(nuevoRegistro);
+
+          await this.pagosService.registrarEnTransaccion(manager, {
+            normalizado: pagoNormalizado,
+            idEvento,
+            idCliente: idUsuario,
+            eventoUsuario: eventoUsuarioGuardado,
+          });
+
+          return {
+            message: "Pago realizado e inscripción confirmada",
+            data: {
+              idEvento,
+              nombreEvento: evento.TITULO,
+              transaccionId: transactionId,
+            },
+            success: true,
+            extra: {
+              correo: usuario.EMAIL,
+              nombre: usuario.NOMBRE,
+              evento: evento.TITULO,
+              monto: Number(evento.PRECIO),
+              transaccionId: transactionId,
+            },
+          };
+        } catch (error) {
+          throw new AppError(
+            "Error al registrar la inscripción tras el checkout.",
+            500,
+          );
+        }
+      },
+    );
+  }
 }

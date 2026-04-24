@@ -9,11 +9,24 @@ export interface PaymentProvider {
     description: string;
     cardToken?: string;
     email: string;
+    devReference: string;
   }): Promise<any>;
 
-  refund?(data: {          // ← opcional, no todos los proveedores lo soportan
+  refund?(data: {
+    // ← opcional, no todos los proveedores lo soportan
     transactionId: string;
     amount: number;
     moreInfo?: boolean;
+  }): Promise<any>;
+
+  initReference(data: {
+    locale: string;
+    userId: string;
+    userEmail: string;
+    amount: number;
+    description: string;
+    devReference: string;
+    vat?: number;
+    installmentsType?: number;
   }): Promise<any>;
 }

@@ -3,14 +3,17 @@ import { PaymentsService } from "./service.js";
 import { PaymentezProvider } from "./providers/paymentez.js";
 import { env } from "../../config/env.js";
 
-const service = new PaymentsService(new PaymentezProvider(
-  {
+const service = new PaymentsService(
+  new PaymentezProvider({
     appCode: process.env.PAYMENTEZ_APP_CODE!,
     appKey: process.env.PAYMENTEZ_APP_KEY!,
-  }
-));
+    appCodeCheckout: process.env.PAYMENTEZ_APP_CODE_CHECKOUT!,
+    appKeyCheckout: process.env.PAYMENTEZ_APP_KEY_CHECKOUT!
+  }),
+);
 export const listarTarjetas = async (req: Request, res: Response) => {
   const { userId } = req.params;
+  console.log(userId)
   try {
     const cards = await service.listarTarjetas(userId);
     res.json(cards);
@@ -33,6 +36,16 @@ export const eliminarTarjeta = async (req: Request, res: Response) => {
 export const debitar = async (req: Request, res: Response) => {
   try {
     const data = await service.debitar(req.body);
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json(error.response?.data || error.message);
+  }
+};
+
+export const initReference = async (req: Request, res: Response) => {
+  try {
+    const data = await service.initReference(req.body);
+    console.log(data);
     res.json(data);
   } catch (error: any) {
     res.status(500).json(error.response?.data || error.message);

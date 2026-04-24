@@ -75,6 +75,20 @@ export class Instituciones {
   })
   applicationKey?: string | null;
 
+  @Column("varchar2", {
+    name: "APP_CODE_CHECKOUT",
+    nullable: true,
+    length: 100,
+  })
+  applicationCodeCheckout?: string | null;
+
+  @Column("varchar2", {
+    name: "APP_KEY_CHECKOUT",
+    nullable: true,
+    length: 100,
+  })
+  applicationKeyCheckout?: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales!: Locales[];
 
