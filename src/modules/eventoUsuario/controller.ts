@@ -65,11 +65,12 @@ export class EventoUsuariosController {
   ) => {
     try {
       const { idEvento } = req.params;
-      const { idUsuario, transactionId } = req.body;
+      const { idUsuario, transactionId, checkoutResponse } = req.body;
       const result = await this.eventoUsuarioService.confirmarCheckout(
         Number(idEvento),
         idUsuario,
         transactionId,
+        checkoutResponse,
       );
 
       // mismo bloque de correo que suscribirUsuario

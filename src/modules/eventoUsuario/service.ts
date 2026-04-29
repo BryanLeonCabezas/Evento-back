@@ -140,6 +140,7 @@ export class EventoUsuarioService {
         let transaccion: any = null;
         const nombrePasarela: string =
           institucion.PROVEEDOR_PAGO ?? "paymentez";
+        debugger;
         // ── CASO 1: Evento gratuito ──────────────────────────────────────────
         if (precioEvento === 0) {
           pagoNormalizado = {
@@ -154,6 +155,7 @@ export class EventoUsuarioService {
             ultimos4: null,
             responseJson: null,
             tipo: "GRATUITO",
+            origen: "DEBITO",
           };
         } else {
           // ── CASO 2: Evento de pago ─────────────────────────────────────────
@@ -177,7 +179,7 @@ export class EventoUsuarioService {
           });
 
           transaccion = responsePago?.transaction;
-          pagoNormalizado = mapper.mapDebito(responsePago);
+          pagoNormalizado = mapper.mapDebito(responsePago, "DEBITO");
 
           // ── CASO 3: Pago fallido → guardar en PAGOS y lanzar error ────────
           if (pagoNormalizado.tipo === "FALLIDO") {
@@ -234,6 +236,7 @@ export class EventoUsuarioService {
             },
           };
         } catch (error) {
+         
           // ── CASO 4: Pago OK pero falló la BD → reembolsar y registrar ──────
           if (precioEvento > 0 && transaccion?.id && paymentsService) {
             try {
@@ -249,6 +252,7 @@ export class EventoUsuarioService {
                 normalizado: mapper.mapReembolso(
                   responseReembolso,
                   precioEvento,
+                  "DEBITO",
                 ),
                 idEvento,
                 idCliente: idUsuario,
@@ -459,6 +463,7 @@ export class EventoUsuarioService {
       throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
 
     const devReference = generarDevReference(idEvento, idUsuario);
+    console.log(institucion);
     const provider = PaymentProviderFactory.create(institucion);
     const paymentsService = new PaymentsService(provider);
 
@@ -470,12 +475,36 @@ export class EventoUsuarioService {
       description: `Inscripción: ${evento.TITULO}`,
       devReference,
       vat: 0,
+      tax_percentage: 0,
+      taxable_amount: 0,
       installmentsType: 0,
     });
 
+    const result2 = await this.pagosService.registrarEnTransaccion(manager, {
+      normalizado: {
+        tipo: "PENDIENTE",
+        estado: "PENDIENTE",
+        detalleEstado: "Checkout iniciado",
+        monto: Number(evento.PRECIO),
+        moneda: "USD",
+        transaccionId: null,
+        pasarela: "paymentez",
+        metodoPago: null,
+        marcaTarjeta: null,
+        ultimos4: null,
+        responseJson: result,
+        origen: "CHECKOUT",
+      },
+      idEvento,
+      idCliente: idUsuario,
+      eventoUsuario: null,
+      devReference,
+    });
+    console.log("Registro de pago pendiente creado:", result2);
     return {
       reference: result.reference,
       envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
+      urlCheckout: result.checkout_url,
     };
   }
 
@@ -484,16 +513,17 @@ export class EventoUsuarioService {
     idEvento: number,
     idUsuario: string,
     transactionId: string,
+    checkoutResponse: any, // el objeto completo del widget
   ) {
-    return await this.eventoUsuarioRepository.manager.transaction(
+    const resultado = await this.eventoUsuarioRepository.manager.transaction(
       async (manager: any) => {
         const [
           evento,
           institucion,
           usuario,
           usuarioInscrito,
-          inscritosAlEvento,
-          publicoEsperado,
+          inscritos,
+          publico,
         ] = await Promise.all([
           obtenerEvento(manager, idEvento),
           obtenerDatosInstitucion(manager, idEvento),
@@ -506,57 +536,94 @@ export class EventoUsuarioService {
         if (!evento) throw new AppError("Evento no encontrado", 404);
         if (usuarioInscrito)
           throw new AppError("El usuario ya está suscrito a este evento", 400);
-        if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
-          throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
+        if (inscritos.INSCRITOS >= publico.PUBLICO_ESPERADO)
+          throw new AppError("Capacidad máxima alcanzada", 400);
 
-        // ── Igual que suscribirUsuario pero con mapCheckout ──────────────────
+        // Verificar dev_reference para que nadie pueda reutilizar una transacción ajena
+        //const devReferenceEsperado = generarDevReference(idEvento, idUsuario);
+        const devReferenceRecibido =
+          checkoutResponse?.transaction?.dev_reference;
+
+        const pago =
+          await this.pagosService.obtenerPagoXReferencia(devReferenceRecibido);
+
+        console.log("Dev reference recibido:", devReferenceRecibido);
+        if (!pago) {
+          throw new AppError("Referencia inválida", 400);
+        }
+
+        if (pago.idEvento !== idEvento || pago.idCliente !== idUsuario) {
+          throw new AppError("No corresponde", 400);
+        }
+
+        // Verificar monto
+        const montoRecibido = Number(checkoutResponse?.transaction?.amount);
+        if (montoRecibido !== Number(evento.PRECIO)) {
+          throw new AppError("El monto de la transacción no coincide", 400);
+        }
+
+        // Mapear igual que débito — misma estructura de response
         const nombrePasarela = institucion.PROVEEDOR_PAGO ?? "paymentez";
         const mapper = GatewayMapperFactory.create(nombrePasarela);
-        const pagoNormalizado = mapper.mapCheckout(
-          transactionId,
-          Number(evento.PRECIO),
+        const pagoNormalizado = mapper.mapDebito(checkoutResponse, "CHECKOUT"); // reutilizas mapDebito
+
+        if (pagoNormalizado.tipo === "FALLIDO") {
+          throw new AppError("La transacción no fue aprobada", 400);
+        }
+
+        const nuevoRegistro = manager.create(EventosUsuarios, {
+          idEvento: { idEvento },
+          idCliente: { idCliente: idUsuario },
+          estado: EstadoEventoUsuario.SUSCRITO,
+          qrToken: generarCodigoQR("TCK"),
+        });
+
+        const eventoUsuarioGuardado = await manager.save(nuevoRegistro);
+
+        await this.pagosService.actualizarPago(
+          manager,
+          pago,
+          pagoNormalizado,
+          eventoUsuarioGuardado,
         );
 
-        try {
-          const nuevoRegistro = manager.create(EventosUsuarios, {
-            idEvento: { idEvento },
-            idCliente: { idCliente: idUsuario },
-            estado: EstadoEventoUsuario.SUSCRITO,
-            qrToken: generarCodigoQR("TCK"),
-          });
-
-          const eventoUsuarioGuardado = await manager.save(nuevoRegistro);
-
-          await this.pagosService.registrarEnTransaccion(manager, {
-            normalizado: pagoNormalizado,
+        return {
+          message: "Pago realizado e inscripción confirmada",
+          data: {
             idEvento,
-            idCliente: idUsuario,
-            eventoUsuario: eventoUsuarioGuardado,
-          });
-
-          return {
-            message: "Pago realizado e inscripción confirmada",
-            data: {
-              idEvento,
-              nombreEvento: evento.TITULO,
-              transaccionId: transactionId,
-            },
-            success: true,
-            extra: {
-              correo: usuario.EMAIL,
-              nombre: usuario.NOMBRE,
-              evento: evento.TITULO,
-              monto: Number(evento.PRECIO),
-              transaccionId: transactionId,
-            },
-          };
-        } catch (error) {
-          throw new AppError(
-            "Error al registrar la inscripción tras el checkout.",
-            500,
-          );
-        }
+            nombreEvento: evento.TITULO,
+            transaccionId: transactionId,
+          },
+          success: true,
+          extra: {
+            correo: usuario.EMAIL,
+            nombre: usuario.NOMBRE,
+            evento: evento.TITULO,
+            monto: Number(evento.PRECIO),
+            transaccionId: transactionId,
+          },
+        };
       },
     );
+
+    // Correo fuera de la transacción — igual que suscribirUsuario
+    try {
+      sendCompraEmail({
+        correo: resultado.extra.correo,
+        nombre: resultado.extra.nombre,
+        evento: resultado.extra.evento,
+        estado: "PAGADO",
+        monto: `$${resultado.extra.monto}`,
+        transaccionId: resultado.extra.transaccionId,
+      }).catch(() => {});
+    } catch (e) {
+      console.error("Error enviando correo:", e);
+    }
+
+    return {
+      message: resultado.message,
+      data: resultado.data,
+      success: resultado.success,
+    };
   }
 }

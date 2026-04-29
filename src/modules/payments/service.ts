@@ -43,6 +43,9 @@ export class PaymentsService {
     devReference: string;
     vat?: number;
     installmentsType?: number;
+    tax_percentage?: 0;
+    taxable_amount?: 0;
+  
   }) {
     return this.provider.initReference(data);
   }

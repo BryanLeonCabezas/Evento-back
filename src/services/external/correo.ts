@@ -27,10 +27,7 @@ export const sendVerificationEmail = async (data: {
 
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Error enviando correo APEX:",
-      error?.response?.data || error.message
-    );
+
     throw new Error("Error enviando correo de verificación");
   }
 };

@@ -28,4 +28,10 @@ export class InstitucionesController {
     const credenciales = await this.institucionService.obtenerCredencialesTokenizacion(idInstitucion);
     res.status(200).json(credenciales);
   };
+
+  obtenerCredencialesCheckout = async (req: Request, res: Response) => {
+    const idInstitucion = Number(req.params.idInstitucion);
+    const credenciales = await this.institucionService.obtenercredencialesCheckout(idInstitucion);
+    res.status(200).json(credenciales);
+  };
 }

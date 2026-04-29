@@ -1,6 +1,6 @@
 // src/modules/pagos/dto/pago-normalizado.dto.ts
 
-export type TipoPago = "EXITOSO" | "GRATUITO" | "REEMBOLSO" | "FALLIDO";
+export type TipoPago = "EXITOSO" | "GRATUITO" | "REEMBOLSO" | "FALLIDO" | "PENDIENTE";
 
 export interface PagoNormalizado {
   transaccionId: string | null;
@@ -14,4 +14,6 @@ export interface PagoNormalizado {
   ultimos4: string | null;
   responseJson: object | null;
   tipo: TipoPago;
+  origen: "DEBITO" | "CHECKOUT";
+  devReference?: string; 
 }

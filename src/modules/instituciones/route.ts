@@ -27,4 +27,10 @@ router.get(
   asyncWrapper(institucionController.obtenerCredencialesTokenizacion),
 );
 
+router.get(
+  "/:idInstitucion/credenciales-checkout",
+  authMiddleware,
+  asyncWrapper(institucionController.obtenerCredencialesCheckout),
+);
+
 export default router;

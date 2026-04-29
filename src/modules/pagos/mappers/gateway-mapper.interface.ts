@@ -3,7 +3,6 @@
 import { PagoNormalizado } from "../dto/pago-normalizado.dto.js";
 
 export interface IGatewayResponseMapper {
-  mapDebito(raw: any): PagoNormalizado;
-  mapReembolso(raw: any, monto: number): PagoNormalizado;
-  mapCheckout(transactionId: string, monto: number): PagoNormalizado;
+  mapDebito(raw: any, origen: "DEBITO" | "CHECKOUT"): PagoNormalizado;
+  mapReembolso(raw: any, monto: number, origen: "DEBITO" | "CHECKOUT"): PagoNormalizado;
 }

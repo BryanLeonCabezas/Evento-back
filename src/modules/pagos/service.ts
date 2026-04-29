@@ -6,12 +6,14 @@ import { EventosUsuarios } from "../eventoUsuario/entity.js";
 import { PagoNormalizado } from "./dto/pago-normalizado.dto.js";
 import { pagoRepository } from "./repository.js";
 import { PagoDetalleResponseDto } from "./dto/pagoDetalle.dto.js";
+import { generarDevReference } from "../../common/utils/dev_reference.utils.js";
 
 interface RegistrarPagoDto {
   normalizado: PagoNormalizado;
   idEvento: number;
   idCliente: string;
   eventoUsuario?: EventosUsuarios | null;
+  devReference?: string; //
 }
 
 export class PagosService {
@@ -39,11 +41,16 @@ export class PagosService {
     const { normalizado: n, idEvento, idCliente, eventoUsuario } = dto;
 
     const pago = new Pagos();
+
+    pago.referencia =
+      dto.devReference ??
+      n.devReference ??
+      generarDevReference(idEvento, idCliente);
+
     pago.eventoUsuario = eventoUsuario ?? null;
     pago.idEvento = idEvento;
     pago.idCliente = idCliente;
     pago.tipoPago = n.tipo;
-    pago.referencia = this.generarReferencia();
     pago.pasarela = n.pasarela;
     pago.transaccionId = n.transaccionId;
     pago.monto = n.monto;
@@ -60,11 +67,6 @@ export class PagosService {
     pago.responseJson = n.responseJson ? JSON.stringify(n.responseJson) : null;
 
     return pago;
-  }
-
-  private generarReferencia(): string {
-    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-    return `PAY-${Date.now()}-${random}`;
   }
 
   async obtenerDetallesPago(idEvento: number, idCliente: string) {
@@ -91,9 +93,40 @@ export class PagosService {
       moneda: pago.moneda ?? "",
       esGratis: pago.esGratis === "S",
       marcaTarjeta: pago.marcaTarjeta ?? null,
-      ultimos4: pago.ultimos4 ?? null, 
+      ultimos4: pago.ultimos4 ?? null,
       fechaPago: pago.fechaPago ?? null,
       fechaRegistro: pago.fechaRegistro! ?? null,
     };
+  }
+
+  async obtenerPagoXReferencia(referencia: string): Promise<Pagos | null> {
+    return await pagoRepository.findOne({ where: { referencia } });
+  }
+
+  async actualizarPago(
+    manager: EntityManager,
+    pago: Pagos,
+    normalizado: PagoNormalizado,
+    eventoUsuario: EventosUsuarios,
+  ) {
+    const esExitoso =
+      normalizado.estado === "APPROVED" || normalizado.tipo === "GRATUITO";
+
+    pago.transaccionId = normalizado.transaccionId;
+    pago.estado = normalizado.estado;
+    pago.detalleEstado = normalizado.detalleEstado;
+    pago.metodoPago = normalizado.metodoPago;
+    pago.marcaTarjeta = normalizado.marcaTarjeta;
+    pago.ultimos4 = normalizado.ultimos4;
+    pago.tipoPago = normalizado.tipo;
+    pago.eventoUsuario = eventoUsuario;
+
+    pago.fechaPago = esExitoso ? new Date() : null;
+    pago.origenPago = normalizado.origen;
+    pago.responseJson = normalizado.responseJson
+      ? JSON.stringify(normalizado.responseJson)
+      : null;
+
+    return await manager.save(pago);
   }
 }

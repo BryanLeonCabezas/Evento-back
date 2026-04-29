@@ -21,7 +21,7 @@ export class PaymentezProvider implements PaymentProvider {
     this.appKey = credentials?.appKey;
     this.appCodeCheckout = credentials.appCodeCheckout;
     this.appKeyCheckout = credentials.appKeyCheckout;
-    console.log("credentials:", credentials);
+
   }
 
   /*private generateAuthToken() {
@@ -161,20 +161,30 @@ export class PaymentezProvider implements PaymentProvider {
     devReference: string;
     vat?: number;
     installmentsType?: number;
+    tax_percentage?: number;
+    taxable_amount?: number;
   }): Promise<{ reference: string; checkout_url: string }> {
-    console.log(data);
+   
     const body = {
       locale: data.locale,
       order: {
         amount: parseFloat(Number(data.amount ?? 0).toFixed(2)),
         description: data.description,
         dev_reference: data.devReference,
+        tax_percentage: data.tax_percentage ?? 0,
+        taxable_amount: data.taxable_amount ?? 0,
         vat: data.vat ?? 0,
         installments_type: data.installmentsType ?? 0,
       },
       user: {
         id: data.userId,
         email: data.userEmail,
+      },
+      conf: {
+        theme: {
+          primary_color: "#0f6675",
+          secondary_color: "#1b3d5e",
+        },
       },
     };
 
@@ -183,7 +193,8 @@ export class PaymentezProvider implements PaymentProvider {
       body,
       { headers: this.getHeaders("checkout") },
     );
+    return response.data;
 
-    return response.data; // { reference: string, checkout_url: string }
+    // { reference: string, checkout_url: string }
   }
 }

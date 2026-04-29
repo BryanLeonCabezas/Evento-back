@@ -13,6 +13,7 @@ export class Pagos {
   @PrimaryGeneratedColumn({ name: "ID_PAGO", type: "number" })
   idPago!: number;
 
+
   @ManyToOne(() => EventosUsuarios, (eu) => eu.pagos, { nullable: true })
   @JoinColumn({ name: "ID_EVENTO_USUARIO" })
   eventoUsuario!: EventosUsuarios | null;
@@ -67,4 +68,7 @@ export class Pagos {
 
   @Column("clob", { name: "RESPONSE_JSON", nullable: true })
   responseJson?: string | null; //
+
+  @Column("varchar2",{ name: "ORIGEN_PAGO", nullable: true })
+  origenPago?: "DEBITO" | "CHECKOUT";
 }

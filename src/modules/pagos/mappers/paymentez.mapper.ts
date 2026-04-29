@@ -3,7 +3,7 @@ import { IGatewayResponseMapper } from "./gateway-mapper.interface.js";
 
 // paymentez.mapper.ts
 export class PaymentezMapper implements IGatewayResponseMapper {
-  mapDebito(responsePago: any): PagoNormalizado {
+  mapDebito(responsePago: any, origen: "DEBITO" | "CHECKOUT"): PagoNormalizado {
     const { card, transaction } = responsePago;
 
     const exitoso =
@@ -22,10 +22,12 @@ export class PaymentezMapper implements IGatewayResponseMapper {
       ultimos4: card?.number ?? null, // "1111"
       responseJson: responsePago,
       tipo: exitoso ? "EXITOSO" : "FALLIDO",
+      origen: origen,
+      devReference: transaction?.dev_reference ?? null,
     };
   }
 
-  mapReembolso(responseReembolso: any, monto: number): PagoNormalizado {
+  mapReembolso(responseReembolso: any, monto: number, origen: "DEBITO" | "CHECKOUT"): PagoNormalizado {
     const { transaction } = responseReembolso;
 
     return {
@@ -40,22 +42,9 @@ export class PaymentezMapper implements IGatewayResponseMapper {
       ultimos4: null,
       responseJson: responseReembolso,
       tipo: "REEMBOLSO",
+      origen: origen,
+      devReference: transaction?.dev_reference ?? null,
     };
   }
 
-  mapCheckout(transactionId: string, monto: number): PagoNormalizado {
-    return {
-      transaccionId: transactionId,
-      pasarela: "paymentez",
-      estado: "APROBADO",
-      detalleEstado: "Pago por checkout",
-      monto,
-      moneda: "USD",
-      metodoPago: "CHECKOUT",
-      marcaTarjeta: null,
-      ultimos4: null,
-      responseJson: { transactionId, source: "checkout" },
-      tipo: "EXITOSO",
-    };
-  }
 }

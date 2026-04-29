@@ -31,14 +31,41 @@ export class InstitucionesService {
 
   async obtenerCredencialesTokenizacion(idInstitucion: number) {
     const institucion = await this.obtenerInstitucionById(idInstitucion);
-    if (!institucion.proveedorPago || !institucion.applicationCode || !institucion.applicationKey) {
-      throw new AppError("La institución no tiene configuradas las credenciales de tokenización", 400);
+    if (
+      !institucion.proveedorPago ||
+      !institucion.applicationCode ||
+      !institucion.applicationKey
+    ) {
+      throw new AppError(
+        "La institución no tiene configuradas las credenciales de tokenización",
+        400,
+      );
     }
     return {
       provider: institucion.proveedorPago,
       environment: institucion.paymentEnvironment,
       applicationCode: institucion.applicationCode,
       applicationKey: institucion.applicationKey,
+    };
+  }
+
+  async obtenercredencialesCheckout(idInstitucion: number) {
+    const institucion = await this.obtenerInstitucionById(idInstitucion);
+    if (
+      !institucion.proveedorPago ||
+      !institucion.applicationCode ||
+      !institucion.applicationKey
+    ) {
+      throw new AppError(
+        "La institución no tiene configuradas las credenciales de tokenización",
+        400,
+      );
+    }
+    return {
+      provider: institucion.proveedorPago,
+      environment: institucion.paymentEnvironment,
+      applicationCodeCheckout: institucion.applicationCodeCheckout,
+      applicationKeyCheckout: institucion.applicationKeyCheckout,
     };
   }
 }

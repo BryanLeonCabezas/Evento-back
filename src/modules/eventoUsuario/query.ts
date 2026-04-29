@@ -2,8 +2,12 @@ import { Entity, EntityManager } from "typeorm"; // ← cambiar el import
 import { EstadoTarjeta } from "../../common/enums/EstadoTarjeta.enum.js";
 import { AppError } from "../../common/utils/App.error.js";
 
-export async function obtenerUsuario(manager: EntityManager, idUsuario: string) {
-  return manager.createQueryBuilder()  // ← manager en vez de repository
+export async function obtenerUsuario(
+  manager: EntityManager,
+  idUsuario: string,
+) {
+  return manager
+    .createQueryBuilder() // ← manager en vez de repository
     .select(["u.ID_CLIENTE", "u.NOMBRE", "u.APELLIDO", "u.EMAIL"])
     .from("USUARIOS", "u")
     .where("u.ID_CLIENTE = :idUsuario", { idUsuario })
@@ -11,31 +15,50 @@ export async function obtenerUsuario(manager: EntityManager, idUsuario: string) 
 }
 
 export async function obtenerEvento(manager: EntityManager, idEvento: number) {
-  return manager.createQueryBuilder()
-    .select(["e.ID_EVENTO", "e.TITULO", "e.PRECIO", "e.PUBLICO_ESPERADO", "e.FECHA_EVENTO"])
+  return manager
+    .createQueryBuilder()
+    .select([
+      "e.ID_EVENTO",
+      "e.TITULO",
+      "e.PRECIO",
+      "e.PUBLICO_ESPERADO",
+      "e.FECHA_EVENTO",
+    ])
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento })
     .getRawOne();
 }
 
-export async function obtenerPrecioEvento(manager: EntityManager, idEvento: number) {
-  return manager.createQueryBuilder()
+export async function obtenerPrecioEvento(
+  manager: EntityManager,
+  idEvento: number,
+) {
+  return manager
+    .createQueryBuilder()
     .select("e.PRECIO", "PRECIO")
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento })
     .getRawOne();
 }
 
-export async function obtenerPublicoEsperado(manager: EntityManager, idEvento: number) {
-  return manager.createQueryBuilder()
+export async function obtenerPublicoEsperado(
+  manager: EntityManager,
+  idEvento: number,
+) {
+  return manager
+    .createQueryBuilder()
     .select("e.PUBLICO_ESPERADO", "PUBLICO_ESPERADO")
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento })
     .getRawOne();
 }
 
-export async function contarInscritos(manager: EntityManager, idEvento: number) {
-  return manager.createQueryBuilder()
+export async function contarInscritos(
+  manager: EntityManager,
+  idEvento: number,
+) {
+  return manager
+    .createQueryBuilder()
     .select("COUNT(1)", "INSCRITOS")
     .from("EVENTOS_USUARIOS", "eu")
     .where("eu.ID_EVENTO = :idEvento", { idEvento })
@@ -46,9 +69,10 @@ export async function contarInscritos(manager: EntityManager, idEvento: number) 
 export async function obtenerTarjetaUsuario(
   manager: EntityManager,
   idTarjeta?: number,
-  idUsuario?: string
+  idUsuario?: string,
 ) {
-  return manager.createQueryBuilder()
+  return manager
+    .createQueryBuilder()
     .select(["t.ID_TARJETA", "t.TOKEN", "t.STATUS"])
     .from("TARJETAS_USUARIO", "t")
     .where("t.ID_TARJETA = :idTarjeta", { idTarjeta })
@@ -60,9 +84,10 @@ export async function obtenerTarjetaUsuario(
 export async function usuarioYaInscrito(
   manager: EntityManager,
   idEvento: number,
-  idUsuario: string
+  idUsuario: string,
 ) {
-  return manager.createQueryBuilder()
+  return manager
+    .createQueryBuilder()
     .select("1")
     .from("EVENTOS_USUARIOS", "eu")
     .where("eu.ID_EVENTO = :idEvento", { idEvento })
@@ -71,9 +96,12 @@ export async function usuarioYaInscrito(
     .getExists();
 }
 
-export async function obtenerDatosInstitucion(manager: EntityManager,
-  idEvento: number) {
-  const result = await manager.createQueryBuilder()
+export async function obtenerDatosInstitucion(
+  manager: EntityManager,
+  idEvento: number,
+) {
+  const result = await manager
+    .createQueryBuilder()
     .select([
       "i.ID_INSTITUCION      AS ID_INSTITUCION",
       "i.NOMBRE              AS NOMBRE",
@@ -81,6 +109,8 @@ export async function obtenerDatosInstitucion(manager: EntityManager,
       "i.USUARIO_PASARELA    AS USUARIO_PASARELA",
       "i.CONTRASENA_PASARELA AS CONTRASENA_PASARELA",
       "i.TOKEN_PASARELA      AS TOKEN_PASARELA",
+      "i.APP_CODE_CHECKOUT      AS APP_CODE_CHECKOUT",
+      "i.APP_KEY_CHECKOUT       AS APP_KEY_CHECKOUT",
     ])
     .from("EVENTOS", "e")
     .innerJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
@@ -94,12 +124,15 @@ export async function obtenerDatosInstitucion(manager: EntityManager,
   }
 
   return result;
-
 }
 
 // query.ts — agregar esta
-export async function obtenerInstitucionPorUsuario(manager: EntityManager, idUsuario: string) {
-  const result = await manager.createQueryBuilder()
+export async function obtenerInstitucionPorUsuario(
+  manager: EntityManager,
+  idUsuario: string,
+) {
+  const result = await manager
+    .createQueryBuilder()
     .select([
       "i.ID_INSTITUCION      AS ID_INSTITUCION",
       "i.NOMBRE              AS NOMBRE",
@@ -109,7 +142,11 @@ export async function obtenerInstitucionPorUsuario(manager: EntityManager, idUsu
       "i.TOKEN_PASARELA      AS TOKEN_PASARELA",
     ])
     .from("INSTITUCIONES", "i")
-    .innerJoin("USUARIO_INSTITUCIONES", "ui", "ui.ID_INSTITUCION = i.ID_INSTITUCION")
+    .innerJoin(
+      "USUARIO_INSTITUCIONES",
+      "ui",
+      "ui.ID_INSTITUCION = i.ID_INSTITUCION",
+    )
     .where("ui.ID_CLIENTE = :idUsuario", { idUsuario })
     .getRawOne();
 

@@ -33,4 +33,16 @@ router.get(
   eventoUsuarioController.obtenerEventosXUsuario
 );
 
+router.post(
+  "/eventos/:idEvento/checkout",
+  authMiddleware,
+  eventoUsuarioController.initCheckout
+);
+
+router.post(
+  "/eventos/:idEvento/checkout/confirmar",
+  authMiddleware,
+  eventoUsuarioController.confirmarCheckout
+);
+
 export default router;

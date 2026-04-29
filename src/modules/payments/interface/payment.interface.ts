@@ -28,5 +28,7 @@ export interface PaymentProvider {
     devReference: string;
     vat?: number;
     installmentsType?: number;
+    tax_percentage?: 0;
+    taxable_amount?: 0;
   }): Promise<any>;
 }
