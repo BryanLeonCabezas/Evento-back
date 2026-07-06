@@ -111,6 +111,8 @@ export async function obtenerDatosInstitucion(
       "i.TOKEN_PASARELA      AS TOKEN_PASARELA",
       "i.APP_CODE_CHECKOUT      AS APP_CODE_CHECKOUT",
       "i.APP_KEY_CHECKOUT       AS APP_KEY_CHECKOUT",
+      "i.URL_COD_PAGO             AS URL_COD_PAGO",
+      "i.URL_PROCESO_PAGO         AS URL_PROCESO_PAGO",
     ])
     .from("EVENTOS", "e")
     .innerJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")

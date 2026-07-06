@@ -2,7 +2,7 @@ import { EventoListDto } from "./dto/evento-list.js";
 import { eventoRepository } from "./repository.js";
 import { institucionRepository } from "../instituciones/repository.js";
 import { EventosPorInstitucionDto } from "./dto/eventoPorInstitucion.js";
-import { EventosQueries } from "./querys.js";
+import { eventoNoFinalizado, EventosQueries } from "./querys.js";
 import {
   formatLocalDate,
   formatTime,
@@ -20,13 +20,14 @@ export class EventoService {
   // ─── Mapping ───────────────────────────────────────────────
 
   private mapToEventoListDto(evento: any): EventoListDto {
+    console.log("evento", evento);
     return {
       idEvento: evento.idEvento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
       fechaEvento: formatLocalDate(evento.fechaEvento),
-      horaInicio: formatTime(evento.horaInicio),
-      horaFin: formatTime(evento.horaFin),
+      horaInicio: evento.horaInicio,
+      horaFin: evento.horaFin,
       imagenUrl: evento.imagenUrl,
       precio: evento.precio,
       destacado: evento.destacado,
@@ -129,11 +130,23 @@ export class EventoService {
         this.eventoRepository.createQueryBuilder("e"),
         idCliente,
       )
-        .andWhere("e.horaFin > SYSDATE")
+        .andWhere(
+          `
+(
+  e.fechaEvento +
+  (
+    TO_DATE(e.horaFin, 'HH24:MI')
+    - TRUNC(TO_DATE(e.horaFin, 'HH24:MI'))
+  )
+) >= SYSDATE
+`,
+        )
         .orderBy("i.idInstitucion", "ASC")
         .addOrderBy("e.fechaEvento", "ASC")
         .getMany(),
     ]);
+
+    console.log("proximos", proximos);
 
     // Próximos: máximo 5 por institución, no 5 en total
     const proximosPorInstitucion = this.tomarNPorInstitucion(proximos, 3, 5);
@@ -278,7 +291,7 @@ export class EventoService {
     const qb = EventosQueries.baseEventosUsuario(
       this.eventoRepository.createQueryBuilder("e"),
       idCliente,
-    ).andWhere("e.horaFin > SYSDATE");
+    ).andWhere(eventoNoFinalizado());
 
     if (filtros.texto) {
       qb.andWhere(

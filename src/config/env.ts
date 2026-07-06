@@ -32,4 +32,8 @@ export const env = {
     user: process.env.DB_USER!,
     password: process.env.DB_PASSWORD!,
   },
+
+  archivo:{
+    rutaArchivos: process.env.RUTA_ARCHIVOS!,
+  }
 };

@@ -9,6 +9,7 @@ import {
 import { UsuarioInstituciones } from "../usuarioIntituciones/entity.js";
 import { Locales } from "../locales/entity.js";
 import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
+import { Archivos } from "../archivos/entity.js";
 
 @Index("SYS_C0012848", ["idInstitucion"], { unique: true })
 @Entity("INSTITUCIONES")
@@ -89,6 +90,20 @@ export class Instituciones {
   })
   applicationKeyCheckout?: string | null;
 
+  @Column("varchar2", {
+    name: "URL_COD_PAGO",
+    nullable: true,
+    length: 500,
+  })
+  urlCodPago?: string | null;
+
+  @Column("varchar2", {
+    name: "URL_PROCESO_PAGO",
+    nullable: true,
+    length: 500,
+  })
+  urlProcesoPago?: string | null;
+
   @OneToMany(() => Locales, (locales) => locales.idInstitucion)
   locales!: Locales[];
 
@@ -100,4 +115,7 @@ export class Instituciones {
 
   @OneToMany(() => TarjetasUsuario, (tarjeta) => tarjeta.institucion)
   tarjetasUsuario?: TarjetasUsuario[];
+
+  @OneToMany(() => Archivos, (archivo) => archivo.institucion)
+  archivos!: Archivos[];
 }

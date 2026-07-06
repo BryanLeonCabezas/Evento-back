@@ -14,6 +14,7 @@ import { CrearUsuarioDto } from "./CrearUsuario.dto.js";
 import { CrearUsuarioGoogleDto } from "./dtos/CrearUsuarioGoogle.dto.js";
 import { env } from "../../config/env.js";
 import jwt from "jsonwebtoken";
+import { completoEnum } from "../../common/enums/usuario.enum.js";
 export class AuthService {
   private repoUsuario = UsuarioRepository;
 
@@ -68,7 +69,8 @@ export class AuthService {
       idCliente: crypto.randomUUID(),
       claveHash: hashPassword(dtoUsuario.claveHash!),
       tipoUsuario: TipoUsuarioEnum.NORMAL,
-
+      perfilCompleto: completoEnum.NO,
+      onboardingCompleto: completoEnum.NO,
       verificationToken: hashedToken,
       isVerified: 0, // No verificado hasta que confirme su correo
       tokenExpira: new Date(Date.now() + 1000 * 60 * 60 * 24),
@@ -126,6 +128,8 @@ export class AuthService {
     });
 
     usuario.refreshToken = refreshToken;
+    usuario.perfilCompleto = completoEnum.NO;
+    usuario.onboardingCompleto = completoEnum.NO;
 
     await this.repoUsuario.save(usuario);
 
@@ -139,6 +143,9 @@ export class AuthService {
         apellido: usuarioGoogle.apellido,
         hasPassword: !!usuario.claveHash,
         fotoUrl: usuario.fotoUrl,
+        perfilCompleto: usuario.perfilCompleto,
+        onboardingCompleto: usuario.onboardingCompleto,
+
       },
       token: accessToken,
       refreshToken: refreshToken,
@@ -176,6 +183,8 @@ export class AuthService {
     });
 
     usuario.refreshToken = refreshToken;
+    usuario.perfilCompleto = usuario.perfilCompleto || completoEnum.NO; 
+    usuario.onboardingCompleto = usuario.onboardingCompleto || completoEnum.NO;
     await this.repoUsuario.save(usuario);
 
     return {
@@ -188,6 +197,8 @@ export class AuthService {
         apellido: usuario.apellido,
         hasPassword: !!usuario.claveHash,
         fotoUrl: usuario.fotoUrl,
+        perfilCompleto: usuario.perfilCompleto,
+        onboardingCompleto: usuario.onboardingCompleto,
       },
       token: accessToken,
       refreshToken: refreshToken,

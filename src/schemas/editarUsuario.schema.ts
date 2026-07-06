@@ -14,4 +14,8 @@ import { GeneroEnum } from "../common/enums/Genero.enum.js";
 
   fotoUrl: z.string().nonempty("La foto es requerida").optional(),
   numeroCelular: z.string().nonempty("El numero celular es requerido").optional(),
+  tipoId: z.string().nonempty("El tipo de identificación es requerido").optional(),
+  numeroId: z.string().nonempty("El número de identificación es requerido").optional(),
+  perfilCompleto: z.enum(["S", "N"]).optional(),
+  onboardingCompleto: z.enum(["S", "N"]).optional(),
 });

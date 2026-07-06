@@ -52,7 +52,6 @@ export class Usuarios {
   })
   verificationToken?: string | null;
 
- 
   @Column("number", {
     name: "IS_VERIFIED",
     nullable: false,
@@ -60,7 +59,6 @@ export class Usuarios {
   })
   isVerified?: number; // 0 = no, 1 = sí
 
-  
   @Column("timestamp", {
     name: "TOKEN_EXPIRA",
     nullable: true,
@@ -88,6 +86,18 @@ export class Usuarios {
 
   @Column("varchar2", { name: "REFRESH_TOKEN", nullable: true, length: 1000 })
   refreshToken?: string | null;
+
+  @Column("varchar2", { name: "TIPO_ID", nullable: true, length: 20 })
+  tipoId?: string | null;
+
+  @Column("varchar2", { name: "NUMERO_ID", nullable: true, length: 20 })
+  numeroId?: string | null;
+
+  @Column("char", { name: "PERFIL_COMPLETO", nullable: true, length: 1 })
+  perfilCompleto?: string | null;
+
+  @Column("char", { name: "ONBOARDING_COMPLETO", nullable: true, length: 1 })
+  onboardingCompleto?: string | null;
 
   @OneToMany(
     () => EventosUsuarios,

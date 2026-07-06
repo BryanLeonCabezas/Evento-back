@@ -236,7 +236,6 @@ export class EventoUsuarioService {
             },
           };
         } catch (error) {
-         
           // ── CASO 4: Pago OK pero falló la BD → reembolsar y registrar ──────
           if (precioEvento > 0 && transaccion?.id && paymentsService) {
             try {
@@ -437,7 +436,7 @@ export class EventoUsuarioService {
   // ── CHECKOUT: Paso 1 — crear reference ────────────────────────────────
   async initCheckout(idEvento: number, idUsuario: string) {
     const manager = this.eventoUsuarioRepository.manager;
-
+    console.log("inicio");
     const [
       evento,
       institucion,
@@ -462,7 +461,15 @@ export class EventoUsuarioService {
     if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
       throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
 
-    const devReference = generarDevReference(idEvento, idUsuario);
+    const urlCodPago = institucion.URL_COD_PAGO;
+    const urlProcesoPago = institucion.URL_PROCESO_PAGO;
+
+    const devReference = generarDevReference(idEvento, idUsuario, urlCodPago, {
+      idUsuario,
+      nombres: usuario.NOMBRE,
+      valorFinal: Number(evento.PRECIO),
+      itemPago: evento.TITULO,
+    });
     console.log(institucion);
     const provider = PaymentProviderFactory.create(institucion);
     const paymentsService = new PaymentsService(provider);

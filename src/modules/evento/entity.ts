@@ -10,6 +10,7 @@ import { EventosUsuarios } from "../eventoUsuario/entity.js";
 import { Subsalones } from "../subsalones/entity.js";
 import { Salones } from "../salones/entity.js";
 import { EntradasEvento } from "../entradaEvento/entity.js";
+import { Archivos } from "../archivos/entity.js";
 
 @Index("SYS_C0012867", ["idEvento"], { unique: true })
 @Entity("EVENTOS")
@@ -23,14 +24,14 @@ export class Eventos {
   @Column("varchar2", { name: "DESCRIPCION", nullable: true, length: 2000 })
   descripcion!: string | null;
 
-  @Column( { name: "FECHA_EVENTO", type: "timestamp" })
+  @Column({ name: "FECHA_EVENTO", type: "timestamp" })
   fechaEvento!: Date;
 
-  @Column( { name: "HORA_INICIO", type: "timestamp"  })
-  horaInicio!: Date;
+  @Column("varchar2", { name: "HORA_INICIO", length: 20 })
+  horaInicio!: string;
 
-  @Column( { name: "HORA_FIN", type: "timestamp" })
-  horaFin!: Date;
+  @Column("varchar2", { name: "HORA_FIN", length: 20 })
+  horaFin!: string;
 
   @Column("number", {
     name: "TIEMPO_SETUP_MIN",
@@ -100,4 +101,7 @@ export class Eventos {
 
   @OneToMany(() => EntradasEvento, (entrada) => entrada.evento)
   entradas?: EntradasEvento[];
+
+  @OneToMany(() => Archivos, (archivo) => archivo.evento)
+  archivos!: Archivos[];
 }

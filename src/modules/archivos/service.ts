@@ -1,0 +1,220 @@
+import { Archivos } from "./entity.js";
+import { archivosRepository } from "./repository.js";
+import { eventoRepository } from "../evento/repository.js";
+import { institucionRepository } from "../instituciones/repository.js";
+import { localesReposiroty } from "../locales/reposiroty.js";
+import { CrearArchivoDto } from "./dto/crearArchivo.dto.js";
+import path from "path";
+import fs from "fs";
+
+export class ArchivosService {
+  private archivosRepository = archivosRepository;
+
+  async guardarArchivo(
+    dto: CrearArchivoDto,
+    file: Express.Multer.File,
+  ): Promise<Archivos> {
+    await this.validarEntidad(dto);
+    this.validarTipoArchivo(dto);
+
+    const rutaFinal = this.moverArchivo(file, dto);
+
+    const existenteActivo = await this.buscarActivo(dto);
+
+    if (existenteActivo) {
+      existenteActivo.activo = "N";
+      await this.archivosRepository.save(existenteActivo);
+    }
+
+    const archivo = this.archivosRepository.create({
+      tipoEntidad: dto.tipoEntidad,
+      tipoArchivo: dto.tipoArchivo,
+
+      nombreOriginal: file.originalname,
+      nombreFisico: file.filename,
+      mimeType: file.mimetype,
+      tamanioBytes: file.size,
+      urlArchivo: rutaFinal,
+
+      activo: "S",
+    });
+
+    switch (dto.tipoEntidad) {
+      case "EVENTO":
+        archivo.evento = await eventoRepository.findOneByOrFail({
+          idEvento: dto.idEvento!,
+        });
+        break;
+
+      case "INSTITUCION":
+        archivo.institucion = await institucionRepository.findOneByOrFail({
+          idInstitucion: dto.idInstitucion!,
+        });
+        break;
+
+      case "LOCAL":
+        archivo.local = await localesReposiroty.findOneByOrFail({
+          idLocal: dto.idLocal!,
+        });
+        break;
+    }
+
+    return await this.archivosRepository.save(archivo);
+  }
+
+  async obtenerActivo(params: {
+    tipoEntidad: "EVENTO" | "INSTITUCION" | "LOCAL";
+    id: number;
+    tipoArchivo: string;
+  }): Promise<Archivos | null> {
+    return this.archivosRepository.findOne({
+      where: {
+        tipoEntidad: params.tipoEntidad,
+        tipoArchivo: params.tipoArchivo as any,
+        activo: "S",
+
+        ...(params.tipoEntidad === "EVENTO" && {
+          evento: { idEvento: params.id },
+        }),
+
+        ...(params.tipoEntidad === "INSTITUCION" && {
+          institucion: { idInstitucion: params.id },
+        }),
+
+        ...(params.tipoEntidad === "LOCAL" && {
+          local: { idLocal: params.id },
+        }),
+      },
+    });
+  }
+
+  async obtenerArchivo(idArchivo: number): Promise<Archivos> {
+    const archivo = await this.archivosRepository.findOne({
+      where: {
+        idArchivo,
+      },
+      relations: {
+        evento: true,
+        institucion: true,
+        local: true,
+      },
+    });
+
+    if (!archivo) {
+      throw new Error("Archivo no encontrado.");
+    }
+
+    return archivo;
+  }
+
+  private async validarEntidad(dto: CrearArchivoDto) {
+    switch (dto.tipoEntidad) {
+      case "EVENTO":
+        if (!dto.idEvento) throw new Error("Debe enviar el idEvento.");
+
+        if (
+          !(await eventoRepository.exists({
+            where: { idEvento: dto.idEvento },
+          }))
+        ) {
+          throw new Error("El evento no existe.");
+        }
+
+        break;
+
+      case "INSTITUCION":
+        if (!dto.idInstitucion)
+          throw new Error("Debe enviar el idInstitucion.");
+
+        if (
+          !(await institucionRepository.exists({
+            where: { idInstitucion: dto.idInstitucion },
+          }))
+        ) {
+          throw new Error("La institución no existe.");
+        }
+
+        break;
+
+      case "LOCAL":
+        if (!dto.idLocal) throw new Error("Debe enviar el idLocal.");
+
+        if (
+          !(await localesReposiroty.exists({
+            where: { idLocal: dto.idLocal },
+          }))
+        ) {
+          throw new Error("El local no existe.");
+        }
+
+        break;
+
+      default:
+        throw new Error("Tipo de entidad inválido.");
+    }
+  }
+
+  private validarTipoArchivo(dto: CrearArchivoDto) {
+    const tiposPermitidos = {
+      EVENTO: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      INSTITUCION: ["LOGO", "BANNER", "DOCUMENTO"],
+      LOCAL: ["PORTADA", "GALERIA", "CROQUIS"],
+    };
+
+    if (!tiposPermitidos[dto.tipoEntidad]?.includes(dto.tipoArchivo)) {
+      throw new Error(
+        `El tipo de archivo '${dto.tipoArchivo}' no es válido para '${dto.tipoEntidad}'.`,
+      );
+    }
+  }
+
+  private moverArchivo(file: Express.Multer.File, dto: CrearArchivoDto) {
+    const BASE = path.resolve("uploads");
+
+    let destino = "";
+
+    switch (dto.tipoEntidad) {
+      case "EVENTO":
+        destino = path.join(BASE, "eventos", String(dto.idEvento));
+        break;
+
+      case "INSTITUCION":
+        destino = path.join(BASE, "instituciones", String(dto.idInstitucion));
+        break;
+
+      case "LOCAL":
+        destino = path.join(BASE, "locales", String(dto.idLocal));
+        break;
+    }
+
+    fs.mkdirSync(destino, { recursive: true });
+
+    const nuevoPath = path.join(destino, file.filename);
+
+    fs.renameSync(file.path, nuevoPath);
+
+    return nuevoPath.replace(/\\/g, "/");
+  }
+
+  private async buscarActivo(dto: CrearArchivoDto) {
+    return this.archivosRepository.findOne({
+      where: {
+        tipoEntidad: dto.tipoEntidad,
+        tipoArchivo: dto.tipoArchivo,
+        activo: "S",
+
+        ...(dto.tipoEntidad === "EVENTO" && {
+          evento: { idEvento: dto.idEvento },
+        }),
+
+        ...(dto.tipoEntidad === "INSTITUCION" && {
+          institucion: { idInstitucion: dto.idInstitucion },
+        }),
+
+        ...(dto.tipoEntidad === "LOCAL" && {
+          local: { idLocal: dto.idLocal },
+        }),
+      },
+    });
+  }
+}

@@ -1,6 +1,18 @@
 import { SelectQueryBuilder } from "typeorm";
 import { Eventos } from "./entity.js";
 
+export function eventoNoFinalizado(): string {
+  return `
+    (
+      e.fechaEvento +
+      (
+        TO_DATE(e.horaFin, 'HH24:MI')
+        - TRUNC(TO_DATE(e.horaFin, 'HH24:MI'))
+      )
+    ) >= SYSDATE
+  `;
+}
+
 export class EventosQueries {
   static baseEventosUsuario(
     qb: SelectQueryBuilder<Eventos>,
@@ -32,7 +44,7 @@ export class EventosQueries {
 
   static proximos(qb: SelectQueryBuilder<Eventos>): SelectQueryBuilder<Eventos> {
     return qb
-      .andWhere("e.horaFin >= SYSDATE")
+      .andWhere(eventoNoFinalizado())
       .orderBy("e.fechaEvento", "ASC")
       .addOrderBy("e.horaInicio", "ASC");
   }
@@ -40,13 +52,13 @@ export class EventosQueries {
   static destacados(qb: SelectQueryBuilder<Eventos>): SelectQueryBuilder<Eventos> {
     return qb
       .andWhere("e.destacado = 1")
-      .andWhere("e.horaFin > SYSDATE")
+      .andWhere(eventoNoFinalizado())
       .orderBy("e.ordenDestacado", "ASC");
   }
 
   static populares(qb: SelectQueryBuilder<Eventos>): SelectQueryBuilder<Eventos> {
     return qb
-      .andWhere("e.horaFin > SYSDATE")
+      .andWhere(eventoNoFinalizado())
       .orderBy("e.publicoEsperado", "DESC");
   }
 }

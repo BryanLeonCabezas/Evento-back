@@ -13,6 +13,7 @@ import tarjetaUsuario from "./modules/tarjetaUsuario/route.js";
 import entradaEvento from "./modules/entradaEvento/route.js";
 import payments from "./modules/payments/route.js";
 import pago from "./modules/pagos/route.js";
+import archivos from "./modules/archivos/route.js";
 const router = Router();
 
 // EVENTO USUARIO ENDPOINT
@@ -28,5 +29,6 @@ router.use("/evento-usuario", eventosUsuariosRoutes);
 router.use("/tarjeta-usuario", tarjetaUsuario);
 router.use("/entrada-evento", entradaEvento);
 router.use("/payments", payments);
-router.use("/pago", pago)
+router.use("/pago", pago);
+router.use("/archivos",archivos);
 export default router;
