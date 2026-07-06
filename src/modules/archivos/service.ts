@@ -6,6 +6,7 @@ import { localesReposiroty } from "../locales/reposiroty.js";
 import { CrearArchivoDto } from "./dto/crearArchivo.dto.js";
 import path from "path";
 import fs from "fs";
+import { env } from "../../config/env.js";
 
 export class ArchivosService {
   private archivosRepository = archivosRepository;
@@ -169,7 +170,7 @@ export class ArchivosService {
   }
 
   private moverArchivo(file: Express.Multer.File, dto: CrearArchivoDto) {
-    const BASE = path.resolve("uploads");
+    const BASE = path.resolve(env.archivo.rutaArchivos);
 
     let destino = "";
 
