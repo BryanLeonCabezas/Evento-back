@@ -184,6 +184,40 @@ export class ArchivosService {
 
         break;
 
+      case "SALON":
+        if (!dto.idSalon) throw new Error("Debe enviar el idSalon.");
+
+        if (
+          !(await salonRepository.exists({
+            where: { idSalon: dto.idSalon },
+          }))
+        ) {
+          throw new Error("El salón no existe.");
+        }
+
+        break;
+
+      case "SUBSALON":
+        if (!dto.idSubsalon) throw new Error("Debe enviar el idSubsalon.");
+
+        if (
+          !(await subsalonesReposiroty.exists({
+            where: { idSubsalon: dto.idSubsalon },
+          }))
+        ) {
+          throw new Error("El subsalón no existe.");
+        }
+
+        break;
+
+      case "CONFIGURACION":
+        if (!dto.idConfiguracion)
+          throw new Error("Debe enviar el idConfiguracion.");
+
+        // No se valida contra la BD.
+
+        break;
+
       default:
         throw new Error("Tipo de entidad inválido.");
     }
