@@ -10,6 +10,8 @@ import {
 import { Eventos } from "../evento/entity.js";
 import { Instituciones } from "../instituciones/entity.js";
 import { Locales } from "../locales/entity.js";
+import { Salones } from "../salones/entity.js";
+import { Subsalones } from "../subsalones/entity.js";
 
 @Entity("ARCHIVOS")
 export class Archivos {
@@ -29,7 +31,13 @@ export class Archivos {
     length: 20,
     nullable: false,
   })
-  tipoEntidad!: "EVENTO" | "INSTITUCION" | "LOCAL";
+  tipoEntidad!:
+    | "EVENTO"
+    | "INSTITUCION"
+    | "LOCAL"
+    | "SALON"
+    | "SUBSALON"
+    | "CONFIGURACION";
 
   /* ================= RELACIONES ================= */
 
@@ -60,6 +68,30 @@ export class Archivos {
   })
   local?: Locales;
 
+  @ManyToOne(() => Salones, (salon) => salon.archivos, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: "ID_SALON",
+    referencedColumnName: "idSalon",
+  })
+  salon?: Salones;
+
+  @ManyToOne(() => Subsalones, (subsalon) => subsalon.archivos, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: "ID_SUBSALON",
+    referencedColumnName: "idSubsalon",
+  })
+  subsalon?: Subsalones;
+
+  @Column({
+    name: "ID_CONFIGURACION",
+    type: "number",
+    nullable: true,
+  })
+  idConfiguracion?: number;
   /* ================= ARCHIVO ================= */
 
   @Column({

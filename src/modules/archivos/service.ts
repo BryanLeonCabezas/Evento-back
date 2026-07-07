@@ -7,6 +7,8 @@ import { CrearArchivoDto } from "./dto/crearArchivo.dto.js";
 import path from "path";
 import fs from "fs";
 import { env } from "../../config/env.js";
+import { salonRepository } from "../salones/repository.js";
+import { subsalonesReposiroty } from "../subsalones/repository.js";
 
 export class ArchivosService {
   private archivosRepository = archivosRepository;
@@ -58,13 +60,34 @@ export class ArchivosService {
           idLocal: dto.idLocal!,
         });
         break;
+      case "SALON":
+        archivo.salon = await salonRepository.findOneByOrFail({
+          idSalon: dto.idSalon!,
+        });
+        break;
+
+      case "SUBSALON":
+        archivo.subsalon = await subsalonesReposiroty.findOneByOrFail({
+          idSubsalon: dto.idSubsalon!,
+        });
+        break;
+
+      case "CONFIGURACION":
+        archivo.idConfiguracion = dto.idConfiguracion!;
+        break;
     }
 
     return await this.archivosRepository.save(archivo);
   }
 
   async obtenerActivo(params: {
-    tipoEntidad: "EVENTO" | "INSTITUCION" | "LOCAL";
+    tipoEntidad:
+      | "EVENTO"
+      | "INSTITUCION"
+      | "LOCAL"
+      | "SALON"
+      | "SUBSALON"
+      | "CONFIGURACION";
     id: number;
     tipoArchivo: string;
   }): Promise<Archivos | null> {
@@ -84,6 +107,17 @@ export class ArchivosService {
 
         ...(params.tipoEntidad === "LOCAL" && {
           local: { idLocal: params.id },
+        }),
+        ...(params.tipoEntidad === "SALON" && {
+          salon: { idSalon: params.id },
+        }),
+
+        ...(params.tipoEntidad === "SUBSALON" && {
+          subsalon: { idSubsalon: params.id },
+        }),
+
+        ...(params.tipoEntidad === "CONFIGURACION" && {
+          idConfiguracion: params.id,
         }),
       },
     });
@@ -158,8 +192,11 @@ export class ArchivosService {
   private validarTipoArchivo(dto: CrearArchivoDto) {
     const tiposPermitidos = {
       EVENTO: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      INSTITUCION: ["LOGO", "BANNER", "DOCUMENTO"],
-      LOCAL: ["PORTADA", "GALERIA", "CROQUIS"],
+      INSTITUCION: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      LOCAL: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      SALON: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      SUBSALON: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      CONFIGURACION: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
     };
 
     if (!tiposPermitidos[dto.tipoEntidad]?.includes(dto.tipoArchivo)) {
@@ -185,6 +222,21 @@ export class ArchivosService {
 
       case "LOCAL":
         destino = path.join(BASE, "locales", String(dto.idLocal));
+        break;
+      case "SALON":
+        destino = path.join(BASE, "salones", String(dto.idSalon));
+        break;
+
+      case "SUBSALON":
+        destino = path.join(BASE, "subsalones", String(dto.idSubsalon));
+        break;
+
+      case "CONFIGURACION":
+        destino = path.join(
+          BASE,
+          "configuraciones",
+          String(dto.idConfiguracion),
+        );
         break;
     }
 
@@ -214,6 +266,22 @@ export class ArchivosService {
 
         ...(dto.tipoEntidad === "LOCAL" && {
           local: { idLocal: dto.idLocal },
+        }),
+
+        ...(dto.tipoEntidad === "SALON" && {
+          salon: {
+            idSalon: dto.idSalon,
+          },
+        }),
+
+        ...(dto.tipoEntidad === "SUBSALON" && {
+          subsalon: {
+            idSubsalon: dto.idSubsalon,
+          },
+        }),
+
+        ...(dto.tipoEntidad === "CONFIGURACION" && {
+          idConfiguracion: dto.idConfiguracion,
         }),
       },
     });

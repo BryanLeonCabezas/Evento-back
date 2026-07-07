@@ -1,5 +1,11 @@
 export interface ObtenerArchivosDto {
-  tipoEntidad: "EVENTO" | "INSTITUCION" | "LOCAL";
+  tipoEntidad:
+    | "EVENTO"
+    | "INSTITUCION"
+    | "LOCAL"
+    | "SALON"
+    | "SUBSALON"
+    | "CONFIGURACION";
 
   idEvento?: number;
   idInstitucion?: number;
