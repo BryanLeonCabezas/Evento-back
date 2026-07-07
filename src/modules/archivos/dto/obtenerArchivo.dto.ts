@@ -10,6 +10,9 @@ export interface ObtenerArchivosDto {
   idEvento?: number;
   idInstitucion?: number;
   idLocal?: number;
+  idSalon?: number;
+  idSubsalon?: number;
+  idConfiguracion?: number;
 
   tipoArchivo?: string;
 }

@@ -17,6 +17,7 @@ export class ArchivosService {
     dto: CrearArchivoDto,
     file: Express.Multer.File,
   ): Promise<Archivos> {
+    console.log("dto", dto);
     await this.validarEntidad(dto);
     this.validarTipoArchivo(dto);
 
@@ -185,6 +186,7 @@ export class ArchivosService {
         break;
 
       case "SALON":
+        console.log("dto.idSalon", dto.idSalon);
         if (!dto.idSalon) throw new Error("Debe enviar el idSalon.");
 
         if (

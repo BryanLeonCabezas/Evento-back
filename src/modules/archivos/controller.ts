@@ -22,6 +22,15 @@ export class ArchivosController {
           ? Number(req.body.idInstitucion)
           : undefined,
         idLocal: req.body.idLocal ? Number(req.body.idLocal) : undefined,
+        idSalon: req.body.idSalon ? Number(req.body.idSalon) : undefined,
+
+        idSubsalon: req.body.idSubsalon
+          ? Number(req.body.idSubsalon)
+          : undefined,
+
+        idConfiguracion: req.body.idConfiguracion
+          ? Number(req.body.idConfiguracion)
+          : undefined,
         tipoArchivo: req.body.tipoArchivo,
       };
 
