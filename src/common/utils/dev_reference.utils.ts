@@ -7,26 +7,34 @@ interface DevReference {
   valorFinal: number;
   itemPago: string;
 }
-
 export async function generarDevReference(
   idEvento: number,
   idUsuario: string,
   urlCodPago: string,
-  data: DevReference
-): string {
+  data: DevReference,
+): Promise<string> {
   if (!urlCodPago) {
     return `EVT-${idEvento}-USR-${idUsuario}-${Date.now()}`;
-  } else {
+  }
 
-    const response = await axios.post(urlCodPago, {
+  try {
+    const { data: response } = await axios.post(urlCodPago, {
       numId: idUsuario,
       nombres: data.nombres,
       valorFinal: data.valorFinal,
       itemPago: data.itemPago,
     });
+
+    if (!response?.codigoPago) {
+      throw new Error("La respuesta no contiene codigoPago");
+    }
+
+    return response.codigoPago;
+  } catch (error) {
+    console.error("Error calling urlCodPago:", error);
+    throw new Error("Failed to call urlCodPago");
   }
 }
-
 export function parsearDevReference(devReference: string) {
   const match = devReference.match(/^EVT-(\d+)-USR-([^-]+)-(\d+)$/);
   if (!match) return null;

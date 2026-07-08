@@ -75,7 +75,6 @@ export class AuthService {
       isVerified: 0, // No verificado hasta que confirme su correo
       tokenExpira: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-   
 
     await this.repoUsuario.save(usuario);
 
@@ -108,16 +107,14 @@ export class AuthService {
     if (!usuario) {
       isNewUser = true;
 
-  
-
       usuario = this.repoUsuario.create({
         ...usuarioGoogle,
         idCliente: crypto.randomUUID(),
         tipoUsuario: TipoUsuarioEnum.GOOGLE,
+        perfilCompleto: completoEnum.NO,
+        onboardingCompleto: completoEnum.NO,
       });
     }
-
-  
 
     let token;
 
@@ -128,8 +125,7 @@ export class AuthService {
     });
 
     usuario.refreshToken = refreshToken;
-    usuario.perfilCompleto = completoEnum.NO;
-    usuario.onboardingCompleto = completoEnum.NO;
+
 
     await this.repoUsuario.save(usuario);
 
@@ -143,9 +139,8 @@ export class AuthService {
         apellido: usuarioGoogle.apellido,
         hasPassword: !!usuario.claveHash,
         fotoUrl: usuario.fotoUrl,
-        perfilCompleto: usuario.perfilCompleto,
-        onboardingCompleto: usuario.onboardingCompleto,
-
+        perfilCompleto: usuario.perfilCompleto === null ? completoEnum.NO : usuario.perfilCompleto,
+        onboardingCompleto: usuario.onboardingCompleto === null ? completoEnum.NO : usuario.onboardingCompleto,
       },
       token: accessToken,
       refreshToken: refreshToken,
@@ -153,8 +148,6 @@ export class AuthService {
   }
 
   async loginUserPassword(email: string, password: string) {
-
-
     if (!email || !password) throw new AppError("Faltan datos", 400);
 
     const usuario = await this.repoUsuario.findOneBy({ email });
@@ -183,7 +176,7 @@ export class AuthService {
     });
 
     usuario.refreshToken = refreshToken;
-    usuario.perfilCompleto = usuario.perfilCompleto || completoEnum.NO; 
+    usuario.perfilCompleto = usuario.perfilCompleto || completoEnum.NO;
     usuario.onboardingCompleto = usuario.onboardingCompleto || completoEnum.NO;
     await this.repoUsuario.save(usuario);
 
@@ -206,8 +199,6 @@ export class AuthService {
   }
 
   async logout(idCliente: string) {
-
-
     const usuario = await this.repoUsuario.findOneBy({ idCliente });
 
     if (!usuario) throw new AppError("El usuario no existe", 400);

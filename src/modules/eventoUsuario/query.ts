@@ -7,8 +7,8 @@ export async function obtenerUsuario(
   idUsuario: string,
 ) {
   return manager
-    .createQueryBuilder() // ← manager en vez de repository
-    .select(["u.ID_CLIENTE", "u.NOMBRE", "u.APELLIDO", "u.EMAIL"])
+    .createQueryBuilder() 
+    .select(["u.ID_CLIENTE", "u.NOMBRE", "u.APELLIDO", "u.EMAIL", "u.NUMERO_ID", "u.TIPO_ID"])
     .from("USUARIOS", "u")
     .where("u.ID_CLIENTE = :idUsuario", { idUsuario })
     .getRawOne();

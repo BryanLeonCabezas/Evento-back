@@ -45,8 +45,8 @@ export class EventoUsuarioService {
       idEvento: evento.IDEVENTO,
       titulo: evento.TITULO,
       fechaEvento: formatLocalDate(evento.FECHAEVENTO),
-      horaInicio: formatTime(evento.HORAINICIO),
-      horaFin: formatTime(evento.HORAFIN),
+      horaInicio: evento.HORAINICIO,
+      horaFin: evento.HORAFIN,
       estado: evento.ESTADO as EstadoEventoUsuario,
       imgUrl: evento.IMGURL,
       precio: evento.PRECIO,
@@ -134,6 +134,26 @@ export class EventoUsuarioService {
           throw new AppError("El usuario ya está suscrito a este evento", 400);
         if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
           throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
+        if (
+          usuario.NUMERO_ID === null ||
+          usuario.NUMERO_ID === undefined ||
+          usuario.NUMERO_ID === ""
+        ) {
+          throw new AppError(
+            "El usuario no tiene un número de identificación válido",
+            400,
+          );
+        }
+        if (
+          usuario.TIPO_ID === null ||
+          usuario.TIPO_ID === undefined ||
+          usuario.TIPO_ID === ""
+        ) {
+          throw new AppError(
+            "El usuario no tiene un tipo de identificación válido",
+            400,
+          );
+        }
         const precioEvento = evento.PRECIO;
         let paymentsService: PaymentsService | null = null;
         let pagoNormalizado: PagoNormalizado;
@@ -169,13 +189,28 @@ export class EventoUsuarioService {
           paymentsService = new PaymentsService(provider);
           const mapper = GatewayMapperFactory.create(nombrePasarela);
 
+          const urlCodPago = institucion.URL_COD_PAGO;
+          const urlProcesoPago = institucion.URL_PROCESO_PAGO;
+
+          const devReference = await generarDevReference(
+            idEvento,
+            usuario.NUMERO_ID,
+            urlCodPago,
+            {
+              idUsuario,
+              nombres: usuario.NOMBRE,
+              valorFinal: precioEvento,
+              itemPago: evento.TITULO,
+            },
+          );
+
           const responsePago = await paymentsService.debitar({
             userId: idUsuario,
             cardToken: tarjetaUsuario.TOKEN,
             amount: precioEvento,
             description: `Pago por inscripción al evento ${evento.TITULO}`,
             email: usuario.EMAIL,
-            devReference: generarDevReference(idEvento, idUsuario),
+            devReference: devReference,
           });
 
           transaccion = responsePago?.transaction;
@@ -399,7 +434,14 @@ export class EventoUsuarioService {
         .andWhere("eu.estado = :estado", {
           estado: EstadoEventoUsuario.SUSCRITO,
         })
-        .andWhere("e.horaFin > SYSDATE")
+        .andWhere(
+          `
+            TO_DATE(
+              TO_CHAR(e.fechaEvento, 'YYYY-MM-DD') || ' ' || e.horaFin,
+              'YYYY-MM-DD HH24:MI'
+            ) > SYSDATE
+          `,
+        )
         .orderBy("e.horaInicio", "ASC")
         .getRawMany(),
 
@@ -412,9 +454,18 @@ export class EventoUsuarioService {
                 EstadoEventoUsuario.NO_ASISTIO,
                 EstadoEventoUsuario.CANCELADO,
               ],
-            }).orWhere("eu.estado = :suscrito AND e.horaFin <= SYSDATE", {
-              suscrito: EstadoEventoUsuario.SUSCRITO,
-            });
+            }).orWhere(
+              `
+                eu.estado = :suscrito
+                AND TO_DATE(
+                  TO_CHAR(e.fechaEvento, 'YYYY-MM-DD') || ' ' || e.horaFin,
+                  'YYYY-MM-DD HH24:MI'
+                ) <= SYSDATE
+              `,
+              {
+                suscrito: EstadoEventoUsuario.SUSCRITO,
+              },
+            );
           }),
         )
         .orderBy("e.horaInicio", "DESC")
@@ -460,17 +511,42 @@ export class EventoUsuarioService {
       throw new AppError("El evento es gratuito, usa el flujo normal", 400);
     if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
       throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
-
+    if (
+      usuario.NUMERO_ID === null ||
+      usuario.NUMERO_ID === undefined ||
+      usuario.NUMERO_ID === ""
+    ) {
+      throw new AppError(
+        "El usuario no tiene un número de identificación válido",
+        400,
+      );
+    }
+    if (
+      usuario.TIPO_ID === null ||
+      usuario.TIPO_ID === undefined ||
+      usuario.TIPO_ID === ""
+    ) {
+      throw new AppError(
+        "El usuario no tiene un tipo de identificación válido",
+        400,
+      );
+    }
+    debugger;
     const urlCodPago = institucion.URL_COD_PAGO;
     const urlProcesoPago = institucion.URL_PROCESO_PAGO;
 
-    const devReference = generarDevReference(idEvento, idUsuario, urlCodPago, {
-      idUsuario,
-      nombres: usuario.NOMBRE,
-      valorFinal: Number(evento.PRECIO),
-      itemPago: evento.TITULO,
-    });
-    console.log(institucion);
+    const devReference = await generarDevReference(
+      idEvento,
+      usuario.NUMERO_ID,
+      urlCodPago,
+      {
+        idUsuario,
+        nombres: usuario.NOMBRE,
+        valorFinal: Number(evento.PRECIO),
+        itemPago: evento.TITULO,
+      },
+    );
+    console.log(devReference);
     const provider = PaymentProviderFactory.create(institucion);
     const paymentsService = new PaymentsService(provider);
 

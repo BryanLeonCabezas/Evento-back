@@ -106,7 +106,8 @@ export class Archivos {
     | "LOGO"
     | "BANNER"
     | "DOCUMENTO"
-    | "CROQUIS";
+    | "CROQUIS"
+    | "LOGO";
 
   @Column({
     name: "NOMBRE_ORIGINAL",

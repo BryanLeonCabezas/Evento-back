@@ -20,5 +20,6 @@ export interface CrearArchivoDto {
     | "LOGO"
     | "BANNER"
     | "DOCUMENTO"
-    | "CROQUIS";
+    | "CROQUIS"
+    | "LOGO";
 }

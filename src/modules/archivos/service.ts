@@ -227,12 +227,33 @@ export class ArchivosService {
 
   private validarTipoArchivo(dto: CrearArchivoDto) {
     const tiposPermitidos = {
-      EVENTO: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      INSTITUCION: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      LOCAL: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      SALON: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      SUBSALON: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
-      CONFIGURACION: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS"],
+      EVENTO: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS", "LOGO"],
+      INSTITUCION: [
+        "PORTADA",
+        "GALERIA",
+        "BANNER",
+        "DOCUMENTO",
+        "CROQUIS",
+        "LOGO",
+      ],
+      LOCAL: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS", "LOGO"],
+      SALON: ["PORTADA", "GALERIA", "BANNER", "DOCUMENTO", "CROQUIS", "LOGO"],
+      SUBSALON: [
+        "PORTADA",
+        "GALERIA",
+        "BANNER",
+        "DOCUMENTO",
+        "CROQUIS",
+        "LOGO",
+      ],
+      CONFIGURACION: [
+        "PORTADA",
+        "GALERIA",
+        "BANNER",
+        "DOCUMENTO",
+        "CROQUIS",
+        "LOGO",
+      ],
     };
 
     if (!tiposPermitidos[dto.tipoEntidad]?.includes(dto.tipoArchivo)) {
