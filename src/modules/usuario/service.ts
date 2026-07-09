@@ -92,6 +92,18 @@ export class UsuarioService {
 
     Object.assign(usuario, datos);
 
+    const perfilCompleto =
+      !!usuario.nombre &&
+      !!usuario.apellido &&
+      !!usuario.fechaNacimiento &&
+      !!usuario.genero &&
+      !!usuario.direccion &&
+      !!usuario.numeroCelular &&
+      !!usuario.tipoId &&
+      !!usuario.numeroId;
+
+    usuario.perfilCompleto = perfilCompleto ? "S" : "N";
+
     return await this.usuarioRepo.save(usuario);
   }
 }
