@@ -7,7 +7,7 @@ export class ArchivosController {
   constructor(private readonly archivosService: ArchivosService) {}
 
   guardarArchivo = async (req: Request, res: Response) => {
-    console.log("req.body", req.body);
+
     try {
       if (!req.file) {
         return res.status(400).json({

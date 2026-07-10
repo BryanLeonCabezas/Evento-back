@@ -17,7 +17,7 @@ export class ArchivosService {
     dto: CrearArchivoDto,
     file: Express.Multer.File,
   ): Promise<Archivos> {
-    console.log("dto", dto);
+
     await this.validarEntidad(dto);
     this.validarTipoArchivo(dto);
 

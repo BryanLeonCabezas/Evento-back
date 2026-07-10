@@ -20,7 +20,7 @@ export class EventoService {
   // ─── Mapping ───────────────────────────────────────────────
 
   private mapToEventoListDto(evento: any): EventoListDto {
-    console.log("evento", evento);
+
     return {
       idEvento: evento.idEvento,
       titulo: evento.titulo,
@@ -146,7 +146,7 @@ export class EventoService {
         .getMany(),
     ]);
 
-    console.log("proximos", proximos);
+
 
     // Próximos: máximo 5 por institución, no 5 en total
     const proximosPorInstitucion = this.tomarNPorInstitucion(proximos, 3, 5);

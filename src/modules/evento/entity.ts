@@ -53,6 +53,9 @@ export class Eventos {
   @Column("varchar2", { name: "IMAGEN_URL", nullable: true, length: 500 })
   imagenUrl!: string | null;
 
+  @Column("varchar2", { name: "COD_ITEM", nullable: true, length: 25 })
+  codItem!: string | null;
+
   @Column("date", {
     name: "FECHA_REGISTRO",
     nullable: true,
@@ -81,6 +84,27 @@ export class Eventos {
     nullable: true,
   })
   ordenDestacado?: number;
+
+  @Column({
+    name: "NO_PUBLICAR",
+    type: "char",
+    length: 1,
+    default: "N",
+    nullable: true,
+  })
+  noPublicar!: "S" | "N";
+
+  @Column({
+    name: "INCLUYE_IVA",
+    type: "char",
+    length: 1,
+    default: "N",
+    nullable: true,
+  })
+  incluyeIva!: "S" | "N";
+
+  @Column("number", { name: "MONTO_IVA", nullable: true, precision: 10, scale: 2 })
+  montoIva?: number | null;
 
   @Column("number", { name: "PRECIO", nullable: true, precision: 10, scale: 2 })
   precio?: number | null;

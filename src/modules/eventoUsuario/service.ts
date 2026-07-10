@@ -128,7 +128,7 @@ export class EventoUsuarioService {
           obtenerUsuario(manager, idUsuario),
           usuarioYaInscrito(manager, idEvento, idUsuario),
         ]);
-
+        debugger;
         if (!evento) throw new AppError("Evento no encontrado", 404);
         if (usuarioInscrito)
           throw new AppError("El usuario ya está suscrito a este evento", 400);
@@ -198,9 +198,10 @@ export class EventoUsuarioService {
             urlCodPago,
             {
               idUsuario,
-              nombres: usuario.NOMBRE,
+              nombres: usuario.NOMBRE + " " + usuario.APELLIDOS,
               valorFinal: precioEvento,
               itemPago: evento.TITULO,
+              codItem: evento.COD_ITEM,
             },
           );
 
@@ -541,9 +542,10 @@ export class EventoUsuarioService {
       urlCodPago,
       {
         idUsuario,
-        nombres: usuario.NOMBRE,
+        nombres: usuario.NOMBRE + " " + usuario.APELLIDOS,
         valorFinal: Number(evento.PRECIO),
         itemPago: evento.TITULO,
+        codItem: evento.COD_ITEM,
       },
     );
     console.log(devReference);

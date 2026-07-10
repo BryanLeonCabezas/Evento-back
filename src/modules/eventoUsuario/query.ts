@@ -7,15 +7,23 @@ export async function obtenerUsuario(
   idUsuario: string,
 ) {
   return manager
-    .createQueryBuilder() 
-    .select(["u.ID_CLIENTE", "u.NOMBRE", "u.APELLIDO", "u.EMAIL", "u.NUMERO_ID", "u.TIPO_ID"])
+    .createQueryBuilder()
+    .select([
+      "u.ID_CLIENTE",
+      "u.NOMBRE",
+      "u.APELLIDO",
+      "u.EMAIL",
+      "u.NUMERO_ID",
+      "u.TIPO_ID",
+    ])
     .from("USUARIOS", "u")
     .where("u.ID_CLIENTE = :idUsuario", { idUsuario })
     .getRawOne();
 }
 
 export async function obtenerEvento(manager: EntityManager, idEvento: number) {
-  return manager
+  console.log("obtenerEvento", idEvento);
+  const qb = manager
     .createQueryBuilder()
     .select([
       "e.ID_EVENTO",
@@ -23,10 +31,14 @@ export async function obtenerEvento(manager: EntityManager, idEvento: number) {
       "e.PRECIO",
       "e.PUBLICO_ESPERADO",
       "e.FECHA_EVENTO",
+      "e.COD_ITEM",
     ])
     .from("EVENTOS", "e")
-    .where("e.ID_EVENTO = :idEvento", { idEvento })
-    .getRawOne();
+    .where("e.ID_EVENTO = :idEvento", { idEvento });
+
+  console.log(qb.getSql());
+
+  return await qb.getRawOne();
 }
 
 export async function obtenerPrecioEvento(

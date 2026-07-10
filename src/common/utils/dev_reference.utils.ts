@@ -6,6 +6,7 @@ interface DevReference {
   nombres: string;
   valorFinal: number;
   itemPago: string;
+  codItem: string;
 }
 export async function generarDevReference(
   idEvento: number,
@@ -23,9 +24,10 @@ export async function generarDevReference(
       nombres: data.nombres,
       valorFinal: data.valorFinal,
       itemPago: data.itemPago,
+      codItem: data.codItem,
     });
 
-    console.log("Response from urlCodPago:", response);
+  
 
     if (!response?.codigoPago) {
       throw new Error("La respuesta no contiene codigoPago");
