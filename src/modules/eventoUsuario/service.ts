@@ -210,7 +210,7 @@ export class EventoUsuarioService {
             amount: precioEvento,
             description: `Pago por inscripción al evento ${evento.TITULO}`,
             email: usuario.EMAIL,
-            devReference: devReference,
+            devReference: devReference.toString(),
           });
 
           transaccion = responsePago?.transaction;
@@ -487,7 +487,7 @@ export class EventoUsuarioService {
   // ── CHECKOUT: Paso 1 — crear reference ────────────────────────────────
   async initCheckout(idEvento: number, idUsuario: string) {
     const manager = this.eventoUsuarioRepository.manager;
-    console.log("inicio");
+
     const [
       evento,
       institucion,
@@ -556,7 +556,7 @@ export class EventoUsuarioService {
       userEmail: usuario.EMAIL,
       amount: Number(evento.PRECIO),
       description: `Inscripción: ${evento.TITULO}`,
-      devReference,
+      devReference: devReference.toString(),
       vat: 0,
       tax_percentage: 0,
       taxable_amount: 0,
@@ -583,7 +583,7 @@ export class EventoUsuarioService {
       eventoUsuario: null,
       devReference,
     });
-    console.log("Registro de pago pendiente creado:", result2);
+  
     return {
       reference: result.reference,
       envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
@@ -630,7 +630,7 @@ export class EventoUsuarioService {
         const pago =
           await this.pagosService.obtenerPagoXReferencia(devReferenceRecibido);
 
-        console.log("Dev reference recibido:", devReferenceRecibido);
+        
         if (!pago) {
           throw new AppError("Referencia inválida", 400);
         }
