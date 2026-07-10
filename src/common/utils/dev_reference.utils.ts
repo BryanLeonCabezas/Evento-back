@@ -25,6 +25,8 @@ export async function generarDevReference(
       itemPago: data.itemPago,
     });
 
+    console.log("Response from urlCodPago:", response);
+
     if (!response?.codigoPago) {
       throw new Error("La respuesta no contiene codigoPago");
     }
