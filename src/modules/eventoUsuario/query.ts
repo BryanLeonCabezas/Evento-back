@@ -32,6 +32,8 @@ export async function obtenerEvento(manager: EntityManager, idEvento: number) {
       "e.PUBLICO_ESPERADO",
       "e.FECHA_EVENTO",
       "e.COD_ITEM",
+      "e.MONTO_IVA",
+      "e.INCLUYE_IVA"
     ])
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento });
@@ -166,6 +168,46 @@ export async function obtenerInstitucionPorUsuario(
 
   if (!result) {
     throw new AppError("Institución no encontrada para el usuario", 404);
+  }
+
+  return result;
+}
+
+export async function obtenerDatosProcesoPago(
+  manager: EntityManager,
+  idEvento: number,
+  idUsuario: string,
+  referencia: string,
+) {
+  const result = await manager
+    .createQueryBuilder()
+    .select([
+      "p.REFERENCIA         AS REFERENCIA",
+      "p.TRANSACCION_ID     AS TRANSACCION_ID",
+      "p.MONTO              AS MONTO",
+      "p.ESTADO             AS ESTADO",
+      "p.DETALLE_ESTADO     AS DETALLE_ESTADO",
+      "p.FECHA_PAGO         AS FECHA_PAGO",
+
+      "u.NOMBRE            AS NOMBRE",
+      "u.EMAIL             AS EMAIL",
+      "u.NUMERO_ID         AS NUMERO_ID",
+      "u.TIPO_ID           AS TIPO_ID",
+
+      "e.COD_ITEM          AS COD_ITEM",
+      "e.MONTO_IVA         AS MONTO_IVA",
+      "e.PRECIO            AS PRECIO",
+    ])
+    .from("PAGOS", "p")
+    .innerJoin("USUARIOS", "u", "u.ID_CLIENTE = p.ID_CLIENTE")
+    .innerJoin("EVENTOS", "e", "e.ID_EVENTO = p.ID_EVENTO")
+    .where("p.ID_EVENTO = :idEvento", { idEvento })
+    .andWhere("p.ID_CLIENTE = :idUsuario", { idUsuario })
+    .andWhere("p.REFERENCIA = :referencia", { referencia })
+    .getRawOne();
+
+  if (!result) {
+    throw new AppError("Pago no encontrado", 404);
   }
 
   return result;

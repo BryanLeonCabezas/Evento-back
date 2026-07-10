@@ -1,5 +1,6 @@
 // common/utils/dev-reference.util.ts
 import axios from "axios";
+import { ProcesoPagoInstitucionDto } from "../../modules/pagos/dto/procesoPagoInstitucion.dto.js";
 
 interface DevReference {
   idUsuario: string;
@@ -27,8 +28,6 @@ export async function generarDevReference(
       codItem: data.codItem,
     });
 
-  
-
     if (!response?.codigoPago) {
       throw new Error("La respuesta no contiene codigoPago");
     }
@@ -37,6 +36,30 @@ export async function generarDevReference(
   } catch (error) {
     console.error("Error calling urlCodPago:", error);
     throw new Error("Failed to call urlCodPago");
+  }
+}
+export async function procesarPagoInstitucion(
+  urlProcesoPago: string,
+  data: ProcesoPagoInstitucionDto,
+): Promise<boolean> {
+  // Si la institución no configuró el endpoint, simplemente continuar
+  debugger;
+  if (!urlProcesoPago) {
+    return true;
+  }
+
+  try {
+    await axios.post(urlProcesoPago, data);
+
+    return true;
+  } catch (error: any) {
+    console.error(
+      "Error notificando el pago a la institución:",
+      error?.response?.data ?? error.message,
+    );
+
+    // No lanzar excepción
+    return false;
   }
 }
 export function parsearDevReference(devReference: string) {

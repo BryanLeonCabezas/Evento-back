@@ -30,7 +30,11 @@ import { PagosService } from "../pagos/service.js";
 import { GatewayMapperFactory } from "../pagos/mappers/gateway-mapper.factory.js";
 import { PagoNormalizado } from "../pagos/dto/pago-normalizado.dto.js";
 import { sendCompraEmail } from "../../services/external/correo.js";
-import { generarDevReference } from "../../common/utils/dev_reference.utils.js";
+import {
+  generarDevReference,
+  procesarPagoInstitucion,
+} from "../../common/utils/dev_reference.utils.js";
+import { ProcesoPagoInstitucionDto } from "../pagos/dto/procesoPagoInstitucion.dto.js";
 
 export class EventoUsuarioService {
   private readonly eventoUsuarioRepository = eventoUsuarioRepository;
@@ -128,7 +132,8 @@ export class EventoUsuarioService {
           obtenerUsuario(manager, idUsuario),
           usuarioYaInscrito(manager, idEvento, idUsuario),
         ]);
-        debugger;
+
+        let payload: ProcesoPagoInstitucionDto | undefined = undefined;
         if (!evento) throw new AppError("Evento no encontrado", 404);
         if (usuarioInscrito)
           throw new AppError("El usuario ya está suscrito a este evento", 400);
@@ -160,7 +165,7 @@ export class EventoUsuarioService {
         let transaccion: any = null;
         const nombrePasarela: string =
           institucion.PROVEEDOR_PAGO ?? "paymentez";
-        debugger;
+
         // ── CASO 1: Evento gratuito ──────────────────────────────────────────
         if (precioEvento === 0) {
           pagoNormalizado = {
@@ -198,7 +203,7 @@ export class EventoUsuarioService {
             urlCodPago,
             {
               idUsuario,
-              nombres: usuario.NOMBRE + " " + usuario.APELLIDOS,
+              nombres: usuario.NOMBRE + " " + usuario.APELLIDO,
               valorFinal: precioEvento,
               itemPago: evento.TITULO,
               codItem: evento.COD_ITEM,
@@ -230,6 +235,26 @@ export class EventoUsuarioService {
               400,
             );
           }
+
+          payload = {
+            codPago: devReference,
+            respuesta: pagoNormalizado.estado === "APPROVED" ? "S" : "N",
+            descripcionRespuesta: pagoNormalizado.detalleEstado,
+            idTransaccion: pagoNormalizado.transaccionId,
+            fecha: new Date(),
+
+            nombreFactura: `${usuario.NOMBRE} ${usuario.APELLIDO}`,
+            emailFactura: usuario.EMAIL,
+            tipoIdFactura: usuario.TIPO_ID,
+            idFactura: usuario.NUMERO_ID,
+
+            incluyeIva: evento.INCLUYE_IVA,
+
+            iva: Number(evento.MONTO_IVA ?? 0),
+            valorPago: Number(precioEvento),
+            valorDescuento: 0,
+            codItem: evento.COD_ITEM,
+          };
         }
 
         // ── Guardar inscripción + pago dentro de la transacción ─────────────
@@ -269,6 +294,8 @@ export class EventoUsuarioService {
               evento: evento.TITULO,
               monto: precioEvento,
               transaccionId: transaccion?.id ?? null,
+              payload: payload,
+              urlProcesoPago: institucion.URL_PROCESO_PAGO,
             },
           };
         } catch (error) {
@@ -310,6 +337,18 @@ export class EventoUsuarioService {
       },
     );
 
+    //ejecutar proceso de institucion:
+    const urlProcesoPago = resultado.extra.urlProcesoPago;
+
+    console.log("urlProcesoPago", urlProcesoPago);
+    console.log("resultado.extra.payload", resultado.extra);
+    try {
+      if (urlProcesoPago && resultado.extra.payload) {
+        await procesarPagoInstitucion(urlProcesoPago, resultado.extra.payload);
+      }
+    } catch (e) {
+      console.error("Error notificando pago a la institución:", e);
+    }
     try {
       sendCompraEmail({
         correo: resultado.extra.correo,
@@ -532,7 +571,7 @@ export class EventoUsuarioService {
         400,
       );
     }
-    debugger;
+
     const urlCodPago = institucion.URL_COD_PAGO;
     const urlProcesoPago = institucion.URL_PROCESO_PAGO;
 
@@ -542,7 +581,7 @@ export class EventoUsuarioService {
       urlCodPago,
       {
         idUsuario,
-        nombres: usuario.NOMBRE + " " + usuario.APELLIDOS,
+        nombres: usuario.NOMBRE + " " + usuario.APELLIDO,
         valorFinal: Number(evento.PRECIO),
         itemPago: evento.TITULO,
         codItem: evento.COD_ITEM,
@@ -585,7 +624,7 @@ export class EventoUsuarioService {
       eventoUsuario: null,
       devReference,
     });
-  
+
     return {
       reference: result.reference,
       envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
@@ -632,7 +671,6 @@ export class EventoUsuarioService {
         const pago =
           await this.pagosService.obtenerPagoXReferencia(devReferenceRecibido);
 
-        
         if (!pago) {
           throw new AppError("Referencia inválida", 400);
         }
