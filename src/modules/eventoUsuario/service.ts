@@ -710,6 +710,25 @@ export class EventoUsuarioService {
           eventoUsuarioGuardado,
         );
 
+        const payload: ProcesoPagoInstitucionDto = {
+          codPago: devReferenceRecibido,
+          respuesta: pagoNormalizado.estado === "APPROVED" ? "S" : "N",
+          descripcionRespuesta: pagoNormalizado.detalleEstado,
+          idTransaccion: pagoNormalizado.transaccionId,
+          fecha: new Date(),
+          nombreFactura: usuario.NOMBRE + " " + usuario.APELLIDO,
+          emailFactura: usuario.EMAIL,
+          tipoIdFactura: usuario.TIPO_ID,
+          idFactura: usuario.NUMERO_ID,
+          iva: evento.MONTO_IVA ?? 0,
+          valorPago: Number(pago.monto),
+          valorDescuento: 0,
+          codItem: evento.COD_ITEM,
+          incluyeIva: evento.INCLUYE_IVA,
+        };
+
+        await procesarPagoInstitucion(institucion.URL_PROCESO_PAGO, payload);
+
         return {
           message: "Pago realizado e inscripción confirmada",
           data: {
@@ -724,12 +743,25 @@ export class EventoUsuarioService {
             evento: evento.TITULO,
             monto: Number(evento.PRECIO),
             transaccionId: transactionId,
+            payload: payload,
+            urlProcesoPago: institucion.URL_PROCESO_PAGO,
           },
         };
       },
     );
 
+    const urlProcesoPago = resultado.extra.urlProcesoPago;
+
+    try {
+      if (urlProcesoPago && resultado.extra.payload) {
+        await procesarPagoInstitucion(urlProcesoPago, resultado.extra.payload);
+      }
+    } catch (e) {
+      console.error("Error notificando pago a la institución:", e);
+    }
+
     // Correo fuera de la transacción — igual que suscribirUsuario
+
     try {
       sendCompraEmail({
         correo: resultado.extra.correo,
