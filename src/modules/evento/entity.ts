@@ -11,6 +11,7 @@ import { Subsalones } from "../subsalones/entity.js";
 import { Salones } from "../salones/entity.js";
 import { EntradasEvento } from "../entradaEvento/entity.js";
 import { Archivos } from "../archivos/entity.js";
+import { EventoExpositores } from "../eventoExpositores/entity.js";
 
 @Index("SYS_C0012867", ["idEvento"], { unique: true })
 @Entity("EVENTOS")
@@ -103,7 +104,12 @@ export class Eventos {
   })
   incluyeIva!: "S" | "N";
 
-  @Column("number", { name: "MONTO_IVA", nullable: true, precision: 10, scale: 2 })
+  @Column("number", {
+    name: "MONTO_IVA",
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   montoIva?: number | null;
 
   @Column("number", { name: "PRECIO", nullable: true, precision: 10, scale: 2 })
@@ -128,4 +134,7 @@ export class Eventos {
 
   @OneToMany(() => Archivos, (archivo) => archivo.evento)
   archivos!: Archivos[];
+
+  @OneToMany(() => EventoExpositores, (expositor) => expositor.evento)
+  expositores?: EventoExpositores[];
 }

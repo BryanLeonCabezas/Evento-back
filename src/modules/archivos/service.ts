@@ -9,6 +9,7 @@ import fs from "fs";
 import { env } from "../../config/env.js";
 import { salonRepository } from "../salones/repository.js";
 import { subsalonesReposiroty } from "../subsalones/repository.js";
+import { eventoExpositoresRepository } from "../eventoExpositores/repositoy.js";
 
 export class ArchivosService {
   private archivosRepository = archivosRepository;
@@ -17,7 +18,6 @@ export class ArchivosService {
     dto: CrearArchivoDto,
     file: Express.Multer.File,
   ): Promise<Archivos> {
-
     await this.validarEntidad(dto);
     this.validarTipoArchivo(dto);
 
@@ -73,6 +73,12 @@ export class ArchivosService {
         });
         break;
 
+      case "EXPOSITOR":
+        archivo.expositor = await eventoExpositoresRepository.findOneByOrFail({
+          idExpositor: dto.idExpositor!,
+        });
+        break;
+
       case "CONFIGURACION":
         archivo.idConfiguracion = dto.idConfiguracion!;
         break;
@@ -88,7 +94,8 @@ export class ArchivosService {
       | "LOCAL"
       | "SALON"
       | "SUBSALON"
-      | "CONFIGURACION";
+      | "CONFIGURACION"
+      | "EXPOSITOR";
     id: number;
     tipoArchivo: string;
   }): Promise<Archivos | null> {
@@ -119,6 +126,9 @@ export class ArchivosService {
 
         ...(params.tipoEntidad === "CONFIGURACION" && {
           idConfiguracion: params.id,
+        }),
+        ...(params.tipoEntidad === "EXPOSITOR" && {
+          expositor: { idExpositor: params.id },
         }),
       },
     });
@@ -212,13 +222,23 @@ export class ArchivosService {
 
         break;
 
+      case "EXPOSITOR":
+        if (!dto.idExpositor) throw new Error("Debe enviar el idExpositor.");
+
+        if (
+          !(await eventoExpositoresRepository.exists({
+            where: { idExpositor: dto.idExpositor },
+          }))
+        ) {
+          throw new Error("El expositor no existe.");
+        }
+        break;
+
       case "CONFIGURACION":
         if (!dto.idConfiguracion)
           throw new Error("Debe enviar el idConfiguracion.");
 
-        // No se valida contra la BD.
-
-        break;
+      // No se valida contra la BD.
 
       default:
         throw new Error("Tipo de entidad inválido.");
@@ -247,6 +267,14 @@ export class ArchivosService {
         "LOGO",
       ],
       CONFIGURACION: [
+        "PORTADA",
+        "GALERIA",
+        "BANNER",
+        "DOCUMENTO",
+        "CROQUIS",
+        "LOGO",
+      ],
+      EXPOSITOR: [
         "PORTADA",
         "GALERIA",
         "BANNER",
@@ -295,6 +323,9 @@ export class ArchivosService {
           String(dto.idConfiguracion),
         );
         break;
+      case "EXPOSITOR":
+        destino = path.join(BASE, "expositores", String(dto.idExpositor));
+        break;
     }
 
     fs.mkdirSync(destino, { recursive: true });
@@ -339,6 +370,11 @@ export class ArchivosService {
 
         ...(dto.tipoEntidad === "CONFIGURACION" && {
           idConfiguracion: dto.idConfiguracion,
+        }),
+        ...(dto.tipoEntidad === "EXPOSITOR" && {
+          expositor: {
+            idExpositor: dto.idExpositor,
+          },
         }),
       },
     });

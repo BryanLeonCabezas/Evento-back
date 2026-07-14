@@ -12,7 +12,9 @@ import { TarjetasUsuario } from "./modules/tarjetaUsuario/entity.js";
 import { EntradasEvento } from "./modules/entradaEvento/entity.js";
 import { Pagos } from "./modules/pagos/entity.js";
 import { Archivos } from "./modules/archivos/entity.js";
+import { EventoExpositores } from "./modules/eventoExpositores/entity.js";
 import { env } from "./config/env.js";
+
 export const AppDataSource = new DataSource({
   type: "oracle",
   host: env.db.host,
@@ -35,5 +37,6 @@ export const AppDataSource = new DataSource({
     EntradasEvento,
     Pagos,
     Archivos,
+    EventoExpositores,
   ],
 });

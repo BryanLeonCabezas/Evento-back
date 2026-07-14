@@ -5,7 +5,8 @@ export interface ObtenerArchivosDto {
     | "LOCAL"
     | "SALON"
     | "SUBSALON"
-    | "CONFIGURACION";
+    | "CONFIGURACION"
+    | "EXPOSITOR";
 
   idEvento?: number;
   idInstitucion?: number;
@@ -13,6 +14,7 @@ export interface ObtenerArchivosDto {
   idSalon?: number;
   idSubsalon?: number;
   idConfiguracion?: number;
+  idExpositor?: number;
 
   tipoArchivo?: string;
 }

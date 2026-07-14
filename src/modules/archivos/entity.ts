@@ -12,6 +12,7 @@ import { Instituciones } from "../instituciones/entity.js";
 import { Locales } from "../locales/entity.js";
 import { Salones } from "../salones/entity.js";
 import { Subsalones } from "../subsalones/entity.js";
+import { EventoExpositores } from "../eventoExpositores/entity.js";
 
 @Entity("ARCHIVOS")
 export class Archivos {
@@ -37,7 +38,8 @@ export class Archivos {
     | "LOCAL"
     | "SALON"
     | "SUBSALON"
-    | "CONFIGURACION";
+    | "CONFIGURACION"
+    | "EXPOSITOR";
 
   /* ================= RELACIONES ================= */
 
@@ -92,6 +94,15 @@ export class Archivos {
     nullable: true,
   })
   idConfiguracion?: number;
+
+  @ManyToOne(() => EventoExpositores, (expositor) => expositor.archivos, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: "ID_EXPOSITOR",
+    referencedColumnName: "idExpositor",
+  })
+  expositor?: EventoExpositores;
   /* ================= ARCHIVO ================= */
 
   @Column({
