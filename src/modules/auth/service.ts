@@ -151,14 +151,14 @@ export class AuthService {
     if (!email || !password) throw new AppError("Faltan datos", 400);
 
     const usuario = await this.repoUsuario.findOneBy({ email });
-    if (!usuario) throw new AppError("El usuario no existe", 400);
+    if (!usuario) throw new AppError("Usuario o Contraseña Incorrecta", 400);
 
     if (usuario.tipoUsuario === TipoUsuarioEnum.GOOGLE && !usuario.claveHash)
       throw new AppError("El usuario no puede iniciar sesion", 400);
 
     const passwordCorrect = comparePassword(password, usuario.claveHash!);
 
-    if (!passwordCorrect) throw new AppError("Contrasena incorrecta", 400);
+    if (!passwordCorrect) throw new AppError("Usuario o Contraseña Incorrecta", 400);
 
     if (
       usuario.tipoUsuario === TipoUsuarioEnum.NORMAL &&
