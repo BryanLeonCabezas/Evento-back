@@ -7,7 +7,6 @@ export class ArchivosController {
   constructor(private readonly archivosService: ArchivosService) {}
 
   guardarArchivo = async (req: Request, res: Response) => {
-
     try {
       if (!req.file) {
         return res.status(400).json({
@@ -35,6 +34,7 @@ export class ArchivosController {
         idExpositor: req.body.idExpositor
           ? Number(req.body.idExpositor)
           : undefined,
+        idUsuario: req.body.idUsuario ? String(req.body.idUsuario) : undefined,
       };
 
       const archivo = await this.archivosService.guardarArchivo(dto, req.file);
@@ -86,7 +86,7 @@ export class ArchivosController {
 
       const archivo = await this.archivosService.obtenerActivo({
         tipoEntidad: tipoEntidad as any,
-        id: Number(id),
+        id: id as string | number,
         tipoArchivo: tipoArchivo as string,
       });
 

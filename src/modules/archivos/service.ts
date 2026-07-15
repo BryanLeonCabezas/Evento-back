@@ -10,6 +10,7 @@ import { env } from "../../config/env.js";
 import { salonRepository } from "../salones/repository.js";
 import { subsalonesReposiroty } from "../subsalones/repository.js";
 import { eventoExpositoresRepository } from "../eventoExpositores/repositoy.js";
+import { UsuarioRepository } from "../usuario/repository.js";
 
 export class ArchivosService {
   private archivosRepository = archivosRepository;
@@ -39,7 +40,6 @@ export class ArchivosService {
       mimeType: file.mimetype,
       tamanioBytes: file.size,
       urlArchivo: rutaFinal,
-
       activo: "S",
     });
 
@@ -79,6 +79,12 @@ export class ArchivosService {
         });
         break;
 
+      case "USUARIO":
+        archivo.usuario = await UsuarioRepository.findOneByOrFail({
+          idCliente: dto.idUsuario!,
+        });
+        break;
+
       case "CONFIGURACION":
         archivo.idConfiguracion = dto.idConfiguracion!;
         break;
@@ -95,8 +101,9 @@ export class ArchivosService {
       | "SALON"
       | "SUBSALON"
       | "CONFIGURACION"
-      | "EXPOSITOR";
-    id: number;
+      | "EXPOSITOR"
+      | "USUARIO";
+    id: number | string;
     tipoArchivo: string;
   }): Promise<Archivos | null> {
     return this.archivosRepository.findOne({
@@ -106,29 +113,32 @@ export class ArchivosService {
         activo: "S",
 
         ...(params.tipoEntidad === "EVENTO" && {
-          evento: { idEvento: params.id },
+          evento: { idEvento: Number(params.id) },
         }),
 
         ...(params.tipoEntidad === "INSTITUCION" && {
-          institucion: { idInstitucion: params.id },
+          institucion: { idInstitucion: Number(params.id) },
         }),
 
         ...(params.tipoEntidad === "LOCAL" && {
-          local: { idLocal: params.id },
+          local: { idLocal: Number(params.id) },
         }),
         ...(params.tipoEntidad === "SALON" && {
-          salon: { idSalon: params.id },
+          salon: { idSalon: Number(params.id) },
         }),
 
         ...(params.tipoEntidad === "SUBSALON" && {
-          subsalon: { idSubsalon: params.id },
+          subsalon: { idSubsalon: Number(params.id) },
         }),
 
         ...(params.tipoEntidad === "CONFIGURACION" && {
-          idConfiguracion: params.id,
+          idConfiguracion: Number(params.id),
         }),
         ...(params.tipoEntidad === "EXPOSITOR" && {
-          expositor: { idExpositor: params.id },
+          expositor: { idExpositor: Number(params.id) },
+        }),
+        ...(params.tipoEntidad === "USUARIO" && {
+          usuario: { idCliente: params.id as string },
         }),
       },
     });
@@ -234,6 +244,18 @@ export class ArchivosService {
         }
         break;
 
+      case "USUARIO":
+        if (!dto.idUsuario) throw new Error("Debe enviar el idUsuario.");
+
+        if (
+          !(await UsuarioRepository.exists({
+            where: { idCliente: dto.idUsuario },
+          }))
+        ) {
+          throw new Error("El usuario no existe.");
+        }
+        break;
+
       case "CONFIGURACION":
         if (!dto.idConfiguracion)
           throw new Error("Debe enviar el idConfiguracion.");
@@ -282,6 +304,15 @@ export class ArchivosService {
         "CROQUIS",
         "LOGO",
       ],
+      USUARIO: [
+        "PORTADA",
+        "GALERIA",
+        "BANNER",
+        "DOCUMENTO",
+        "CROQUIS",
+        "LOGO",
+        "PERFIL",
+      ],
     };
 
     if (!tiposPermitidos[dto.tipoEntidad]?.includes(dto.tipoArchivo)) {
@@ -322,6 +353,9 @@ export class ArchivosService {
           "configuraciones",
           String(dto.idConfiguracion),
         );
+        break;
+      case "USUARIO":
+        destino = path.join(BASE, "usuarios", String(dto.idUsuario));
         break;
       case "EXPOSITOR":
         destino = path.join(BASE, "expositores", String(dto.idExpositor));
@@ -374,6 +408,11 @@ export class ArchivosService {
         ...(dto.tipoEntidad === "EXPOSITOR" && {
           expositor: {
             idExpositor: dto.idExpositor,
+          },
+        }),
+        ...(dto.tipoEntidad === "USUARIO" && {
+          usuario: {
+            idCliente: dto.idUsuario,
           },
         }),
       },

@@ -13,6 +13,7 @@ import { Locales } from "../locales/entity.js";
 import { Salones } from "../salones/entity.js";
 import { Subsalones } from "../subsalones/entity.js";
 import { EventoExpositores } from "../eventoExpositores/entity.js";
+import { Usuarios } from "../usuario/entity.js";
 
 @Entity("ARCHIVOS")
 export class Archivos {
@@ -39,7 +40,8 @@ export class Archivos {
     | "SALON"
     | "SUBSALON"
     | "CONFIGURACION"
-    | "EXPOSITOR";
+    | "EXPOSITOR"
+    | "USUARIO";
 
   /* ================= RELACIONES ================= */
 
@@ -103,6 +105,15 @@ export class Archivos {
     referencedColumnName: "idExpositor",
   })
   expositor?: EventoExpositores;
+
+  @ManyToOne(() => Usuarios, (usuario) => usuario.archivos, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: "ID_USUARIO",
+    referencedColumnName: "idCliente",
+  })
+  usuario?: Usuarios;
   /* ================= ARCHIVO ================= */
 
   @Column({
@@ -118,7 +129,8 @@ export class Archivos {
     | "BANNER"
     | "DOCUMENTO"
     | "CROQUIS"
-    | "LOGO";
+    | "LOGO"
+    | "PERFIL";
 
   @Column({
     name: "NOMBRE_ORIGINAL",
