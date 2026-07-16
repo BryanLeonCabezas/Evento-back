@@ -238,8 +238,8 @@ export class EventoUsuarioService {
 
           payload = {
             codPago: devReference,
-            respuesta: pagoNormalizado.estado === "APPROVED" ? "S" : "N",
-            descripcionRespuesta: pagoNormalizado.detalleEstado,
+            respuesta: Number(pagoNormalizado.statusDetail),
+            descripcionRespuesta: pagoNormalizado.status?.toString() ?? null,
             idTransaccion: pagoNormalizado.transaccionId,
             fecha: new Date(),
 
@@ -712,8 +712,8 @@ export class EventoUsuarioService {
 
         const payload: ProcesoPagoInstitucionDto = {
           codPago: devReferenceRecibido,
-          respuesta: pagoNormalizado.estado === "APPROVED" ? "S" : "N",
-          descripcionRespuesta: pagoNormalizado.detalleEstado,
+          respuesta: Number(pagoNormalizado.statusDetail),
+          descripcionRespuesta: pagoNormalizado.status?.toString() ?? null,
           idTransaccion: pagoNormalizado.transaccionId,
           fecha: new Date(),
           nombreFactura: usuario.NOMBRE + " " + usuario.APELLIDO,

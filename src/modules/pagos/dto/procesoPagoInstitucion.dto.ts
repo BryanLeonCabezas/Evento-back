@@ -1,6 +1,6 @@
 export interface ProcesoPagoInstitucionDto {
   codPago: string;
-  respuesta: string;
+  respuesta: number | null;
   descripcionRespuesta: string | null;
   idTransaccion: string | null;
   fecha: Date;

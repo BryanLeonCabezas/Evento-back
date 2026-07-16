@@ -24,10 +24,16 @@ export class PaymentezMapper implements IGatewayResponseMapper {
       tipo: exitoso ? "EXITOSO" : "FALLIDO",
       origen: origen,
       devReference: transaction?.dev_reference ?? null,
+      statusDetail: transaction?.status_detail ?? null,
+      status: transaction?.status ?? null,
     };
   }
 
-  mapReembolso(responseReembolso: any, monto: number, origen: "DEBITO" | "CHECKOUT"): PagoNormalizado {
+  mapReembolso(
+    responseReembolso: any,
+    monto: number,
+    origen: "DEBITO" | "CHECKOUT",
+  ): PagoNormalizado {
     const { transaction } = responseReembolso;
 
     return {
@@ -44,7 +50,8 @@ export class PaymentezMapper implements IGatewayResponseMapper {
       tipo: "REEMBOLSO",
       origen: origen,
       devReference: transaction?.dev_reference ?? null,
+      statusDetail: transaction?.status_detail ?? null,
+      status: transaction?.status ?? null,
     };
   }
-
 }

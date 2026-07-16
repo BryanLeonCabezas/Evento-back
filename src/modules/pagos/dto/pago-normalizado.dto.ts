@@ -16,4 +16,6 @@ export interface PagoNormalizado {
   tipo: TipoPago;
   origen: "DEBITO" | "CHECKOUT";
   devReference?: string; 
+  statusDetail?: number | null;
+  status?: string | null;
 }
