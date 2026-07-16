@@ -11,6 +11,7 @@ import { salonRepository } from "../salones/repository.js";
 import { subsalonesReposiroty } from "../subsalones/repository.js";
 import { eventoExpositoresRepository } from "../eventoExpositores/repositoy.js";
 import { UsuarioRepository } from "../usuario/repository.js";
+import { certificadoRepository } from "../certificados/repository.js";
 
 export class ArchivosService {
   private archivosRepository = archivosRepository;
@@ -85,6 +86,12 @@ export class ArchivosService {
         });
         break;
 
+      case "CERTIFICADO":
+        archivo.certificado = await certificadoRepository.findOneByOrFail({
+          idCertificado: dto.idCertificado!,
+        });
+        break;
+
       case "CONFIGURACION":
         archivo.idConfiguracion = dto.idConfiguracion!;
         break;
@@ -102,7 +109,8 @@ export class ArchivosService {
       | "SUBSALON"
       | "CONFIGURACION"
       | "EXPOSITOR"
-      | "USUARIO";
+      | "USUARIO"
+      | "CERTIFICADO";
     id: number | string;
     tipoArchivo: string;
   }): Promise<Archivos | null> {
@@ -139,6 +147,9 @@ export class ArchivosService {
         }),
         ...(params.tipoEntidad === "USUARIO" && {
           usuario: { idCliente: params.id as string },
+        }),
+        ...(params.tipoEntidad === "CERTIFICADO" && {
+          certificado: { idCertificado: Number(params.id) },
         }),
       },
     });
@@ -256,6 +267,18 @@ export class ArchivosService {
         }
         break;
 
+      case "CERTIFICADO":
+        if (!dto.idCertificado)
+          throw new Error("Debe enviar el idCertificado.");
+
+        if (
+          !(await certificadoRepository.exists({
+            where: { idCertificado: dto.idCertificado },
+          }))
+        ) {
+          throw new Error("El certificado no existe.");
+        }
+
       case "CONFIGURACION":
         if (!dto.idConfiguracion)
           throw new Error("Debe enviar el idConfiguracion.");
@@ -313,6 +336,7 @@ export class ArchivosService {
         "LOGO",
         "PERFIL",
       ],
+      CERTIFICADO: ["DOCUMENTO"],
     };
 
     if (!tiposPermitidos[dto.tipoEntidad]?.includes(dto.tipoArchivo)) {
@@ -356,6 +380,10 @@ export class ArchivosService {
         break;
       case "USUARIO":
         destino = path.join(BASE, "usuarios", String(dto.idUsuario));
+        break;
+
+      case "CERTIFICADO":
+        destino = path.join(BASE, "certificados", String(dto.idCertificado));
         break;
       case "EXPOSITOR":
         destino = path.join(BASE, "expositores", String(dto.idExpositor));
@@ -410,6 +438,13 @@ export class ArchivosService {
             idExpositor: dto.idExpositor,
           },
         }),
+
+        ...(dto.tipoEntidad === "CERTIFICADO" && {
+          certificado: {
+            idCertificado: dto.idCertificado,
+          },
+        }),
+
         ...(dto.tipoEntidad === "USUARIO" && {
           usuario: {
             idCliente: dto.idUsuario,

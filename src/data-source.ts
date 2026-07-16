@@ -13,6 +13,7 @@ import { EntradasEvento } from "./modules/entradaEvento/entity.js";
 import { Pagos } from "./modules/pagos/entity.js";
 import { Archivos } from "./modules/archivos/entity.js";
 import { EventoExpositores } from "./modules/eventoExpositores/entity.js";
+import { Certificado } from "./modules/certificados/entity.js";
 import { env } from "./config/env.js";
 
 export const AppDataSource = new DataSource({
@@ -38,5 +39,6 @@ export const AppDataSource = new DataSource({
     Pagos,
     Archivos,
     EventoExpositores,
+    Certificado,
   ],
 });

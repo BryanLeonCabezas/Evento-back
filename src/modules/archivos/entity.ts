@@ -14,6 +14,7 @@ import { Salones } from "../salones/entity.js";
 import { Subsalones } from "../subsalones/entity.js";
 import { EventoExpositores } from "../eventoExpositores/entity.js";
 import { Usuarios } from "../usuario/entity.js";
+import { Certificado } from "../certificados/entity.js";
 
 @Entity("ARCHIVOS")
 export class Archivos {
@@ -41,7 +42,8 @@ export class Archivos {
     | "SUBSALON"
     | "CONFIGURACION"
     | "EXPOSITOR"
-    | "USUARIO";
+    | "USUARIO"
+    | "CERTIFICADO";
 
   /* ================= RELACIONES ================= */
 
@@ -114,6 +116,12 @@ export class Archivos {
     referencedColumnName: "idCliente",
   })
   usuario?: Usuarios;
+
+  @ManyToOne(() => Certificado, (certificado) => certificado.archivos)
+  @JoinColumn({
+    name: "ID_CERTIFICADO",
+  })
+  certificado?: Certificado;
   /* ================= ARCHIVO ================= */
 
   @Column({

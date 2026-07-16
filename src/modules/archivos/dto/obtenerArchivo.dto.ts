@@ -7,7 +7,8 @@ export interface ObtenerArchivosDto {
     | "SUBSALON"
     | "CONFIGURACION"
     | "EXPOSITOR"
-    | "USUARIO";
+    | "USUARIO"
+    | "CERTIFICADO";
 
   idEvento?: number;
   idInstitucion?: number;

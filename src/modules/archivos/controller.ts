@@ -35,6 +35,9 @@ export class ArchivosController {
           ? Number(req.body.idExpositor)
           : undefined,
         idUsuario: req.body.idUsuario ? String(req.body.idUsuario) : undefined,
+        idCertificado: req.body.idCertificado
+          ? Number(req.body.idCertificado)
+          : undefined,
       };
 
       const archivo = await this.archivosService.guardarArchivo(dto, req.file);

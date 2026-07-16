@@ -4,6 +4,7 @@ import { UsuarioInstituciones } from "../usuarioIntituciones/entity.js";
 import { TarjetasUsuario } from "../tarjetaUsuario/entity.js";
 import { EntradasEvento } from "../entradaEvento/entity.js";
 import { Archivos } from "../archivos/entity.js";
+import { Certificado } from "../certificados/entity.js";
 
 @Index("EVENTOS_USUARIOS_EMAIL_UK", ["email"], { unique: true })
 @Entity("USUARIOS")
@@ -120,4 +121,7 @@ export class Usuarios {
 
   @OneToMany(() => Archivos, (archivo) => archivo.usuario)
   archivos?: Archivos[];
+
+  @OneToMany(() => Certificado, (certificado) => certificado.usuario)
+  certificados?: Certificado[];
 }

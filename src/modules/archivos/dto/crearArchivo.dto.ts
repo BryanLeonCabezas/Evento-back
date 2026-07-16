@@ -7,7 +7,8 @@ export interface CrearArchivoDto {
     | "SUBSALON"
     | "CONFIGURACION"
     | "EXPOSITOR"
-    | "USUARIO";
+    | "USUARIO"
+    | "CERTIFICADO";
 
   idEvento?: number;
   idInstitucion?: number;
@@ -17,6 +18,7 @@ export interface CrearArchivoDto {
   idConfiguracion?: number;
   idExpositor?: number;
   idUsuario?: string;
+  idCertificado?: number;
 
   tipoArchivo:
     | "PORTADA"
