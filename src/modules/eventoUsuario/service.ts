@@ -349,7 +349,7 @@ export class EventoUsuarioService {
     } catch (e) {
       console.error("Error notificando pago a la institución:", e);
     }
-    try {
+   /* try {
       sendCompraEmail({
         correo: resultado.extra.correo,
         nombre: resultado.extra.nombre,
@@ -361,7 +361,7 @@ export class EventoUsuarioService {
       }).catch(() => {}); // no romper flujo
     } catch (e) {
       console.error("Error enviando correo:", e);
-    }
+    }*/
 
     // 🔹 3. Devuelves respuesta limpia
     return {
@@ -762,7 +762,7 @@ export class EventoUsuarioService {
 
     // Correo fuera de la transacción — igual que suscribirUsuario
 
-    try {
+    /*try {
       sendCompraEmail({
         correo: resultado.extra.correo,
         nombre: resultado.extra.nombre,
@@ -773,7 +773,7 @@ export class EventoUsuarioService {
       }).catch(() => {});
     } catch (e) {
       console.error("Error enviando correo:", e);
-    }
+    }*/
 
     return {
       message: resultado.message,

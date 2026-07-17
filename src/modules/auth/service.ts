@@ -37,7 +37,7 @@ export class AuthService {
 
       await this.repoUsuario.save(exist);
 
-      try {
+     /* try {
         await sendVerificationEmail({
           correo: exist.email,
           nombre: exist.nombre!,
@@ -45,7 +45,7 @@ export class AuthService {
         });
       } catch (e) {
         console.error("Error reenviando correo:", e);
-      }
+      }*/
 
       return {
         message:
@@ -81,11 +81,11 @@ export class AuthService {
     await this.repoUsuario.save(usuario);
 
     //Envio de correo de verificacion
-    await sendVerificationEmail({
+    /*await sendVerificationEmail({
       correo: usuario.email,
       nombre: usuario.nombre!,
       linkVerification: `https://api-ligaprocorp.ec:3443/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
-    });
+    });*/
 
     return {
       message:
@@ -229,7 +229,7 @@ export class AuthService {
 
     if (
       usuario.tipoUsuario === TipoUsuarioEnum.NORMAL &&
-      usuario.isVerified === verificadoEnum.NO_VERIFICADO
+      usuario.isVerified === verificadoEnum.VERIFICADO
     )
       throw new AppError(
         "Debes verificar tu cuenta antes de iniciar sesión. Revisa tu correo electrónico.",
@@ -432,11 +432,11 @@ export class AuthService {
     usuario.tokenExpira = new Date(ahoraMs + 1000 * 60 * 60 * 24);
     await this.repoUsuario.save(usuario);
 
-    await sendVerificationEmail({
+    /*await sendVerificationEmail({
       correo: usuario.email,
       nombre: usuario.nombre!,
       linkVerification: `https://api-ligaprocorp.ec:3443/api/auth/verify?token=${token}&idCliente=${usuario.idCliente}`,
-    });
+    });*/
 
     return { message: "Correo de verificación reenviado correctamente." };
   }
