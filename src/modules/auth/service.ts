@@ -8,10 +8,12 @@ import {
   hashToken,
 } from "../../common/utils/crypto.util.js";
 import { validarIdTokenGoogle } from "../../common/utils/validarIdToken.util.js";
+import { validarIdTokenApple } from "../../common/utils/validarIdTokenApple.util.js";
 import { sendVerificationEmail } from "../../services/external/correo.js";
 import { UsuarioRepository } from "../usuario/repository.js";
 import { CrearUsuarioDto } from "./CrearUsuario.dto.js";
 import { CrearUsuarioGoogleDto } from "./dtos/CrearUsuarioGoogle.dto.js";
+import { CrearUsuarioAppleDto } from "./dtos/CrearUsuarioApple.dto.js";
 import { env } from "../../config/env.js";
 import jwt from "jsonwebtoken";
 import { completoEnum } from "../../common/enums/usuario.enum.js";
@@ -141,6 +143,71 @@ export class AuthService {
         fotoUrl: usuario.fotoUrl,
         perfilCompleto: usuario.perfilCompleto === null ? completoEnum.NO : usuario.perfilCompleto,
         onboardingCompleto: usuario.onboardingCompleto === null ? completoEnum.NO : usuario.onboardingCompleto,
+      },
+      token: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
+
+  async authApple(dtoUsuarioApple: CrearUsuarioAppleDto) {
+    const usuarioApple = await validarIdTokenApple(
+      dtoUsuarioApple.identityToken!,
+      {
+        email: dtoUsuarioApple.email,
+        nombre: dtoUsuarioApple.nombre,
+        apellido: dtoUsuarioApple.apellido,
+      },
+    );
+
+    let usuario = await this.repoUsuario.findOneBy({
+      email: usuarioApple.email,
+    });
+
+    let isNewUser = false;
+
+    if (!usuario) {
+      isNewUser = true;
+
+      usuario = this.repoUsuario.create({
+        ...usuarioApple,
+        idCliente: crypto.randomUUID(),
+        tipoUsuario: TipoUsuarioEnum.APPLE,
+        perfilCompleto: completoEnum.NO,
+        onboardingCompleto: completoEnum.NO,
+      });
+    } else if (!usuario.appleId) {
+      // vincula el APPLE_ID a la cuenta existente de ese email
+      usuario.appleId = usuarioApple.appleId;
+    }
+
+    const { accessToken, refreshToken } = this.generateTokens({
+      idCliente: usuario.idCliente,
+      email: usuario.email,
+      tipoUsuario: usuario.tipoUsuario,
+    });
+
+    usuario.refreshToken = refreshToken;
+
+    await this.repoUsuario.save(usuario);
+
+    return {
+      message: isNewUser ? "Usuario creado con éxito" : "Login exitoso",
+      usuario: {
+        idUsuario: usuario.idCliente,
+        email: usuario.email,
+        tipoUsuario: usuario.tipoUsuario,
+        nombre: usuario.nombre ?? usuarioApple.nombre,
+        apellido: usuario.apellido ?? usuarioApple.apellido,
+        hasPassword: !!usuario.claveHash,
+        fotoUrl: usuario.fotoUrl,
+        perfilCompleto:
+          usuario.perfilCompleto === null
+            ? completoEnum.NO
+            : usuario.perfilCompleto,
+        onboardingCompleto:
+          usuario.onboardingCompleto === null
+            ? completoEnum.NO
+            : usuario.onboardingCompleto,
       },
       token: accessToken,
       refreshToken: refreshToken,

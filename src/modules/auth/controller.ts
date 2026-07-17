@@ -21,6 +21,12 @@ export class AuthController {
     res.status(201).json(usuario);
   };
 
+  // Handler para registro/login con Apple
+  registerApple = async (req: Request, res: Response) => {
+    const usuario = await this.authService.authApple(req.body);
+    res.status(201).json(usuario);
+  };
+
   loginUserPassword = async (req: Request, res: Response) => {
     const usuario = await this.authService.loginUserPassword(
       req.body.email,

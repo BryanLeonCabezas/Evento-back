@@ -11,6 +11,7 @@ export class UsuarioDto {
   fotoUrl?: string;
   claveHash?: string;
   googleId?: string;
+  appleId?: string;
   tipoUsuario?: TipoUsuarioEnum;
   idToken?: string;
   accessToken?: string;
