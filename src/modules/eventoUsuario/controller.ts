@@ -46,6 +46,7 @@ export class EventoUsuariosController {
 
   initCheckout = async (req: Request, res: Response, next: NextFunction) => {
     console.log("initCheckout controller");
+    console.log(req.body)
     try {
       const { idEvento } = req.params;
       const { idUsuario } = req.body;
