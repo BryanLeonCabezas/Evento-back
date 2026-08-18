@@ -30,6 +30,9 @@ export async function generarDevReference(
       valorFinal: data.valorFinal,
       itemPago: data.itemPago,
       codItem: data.codItem,
+      cupon: data.cupon,
+      precioOriginal: data.precioOriginal,
+      descuento: data.descuento
     });
 
     if (!response?.codigoPago) {
