@@ -15,6 +15,7 @@ import { Archivos } from "./modules/archivos/entity.js";
 import { EventoExpositores } from "./modules/eventoExpositores/entity.js";
 import { Certificado } from "./modules/certificados/entity.js";
 import { env } from "./config/env.js";
+import { EventoCupones } from "./modules/eventoCupones/entity.js";
 
 export const AppDataSource = new DataSource({
   type: "oracle",
@@ -40,5 +41,6 @@ export const AppDataSource = new DataSource({
     Archivos,
     EventoExpositores,
     Certificado,
+    EventoCupones
   ],
 });

@@ -33,7 +33,7 @@ export async function obtenerEvento(manager: EntityManager, idEvento: number) {
       "e.FECHA_EVENTO",
       "e.COD_ITEM",
       "e.MONTO_IVA",
-      "e.INCLUYE_IVA"
+      "e.INCLUYE_IVA",
     ])
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento });
@@ -211,4 +211,31 @@ export async function obtenerDatosProcesoPago(
   }
 
   return result;
+}
+
+export async function obtenerCuponValido(
+  manager: EntityManager,
+  idEvento: number,
+  codigoCupon: string,
+) {
+  return manager
+    .createQueryBuilder()
+    .select([
+      "c.ID_CUPON AS ID_CUPON",
+      "c.ID_EVENTO AS ID_EVENTO",
+      "c.CODIGO AS CODIGO",
+      "c.TIPO_DESCUENTO AS TIPO_DESCUENTO",
+      "c.MONTO_DESCUENTO AS MONTO_DESCUENTO",
+      "c.USOS AS USOS",
+      "c.MAX_USOS AS MAX_USOS",
+      "c.ACTIVO AS ACTIVO",
+    ])
+    .from("EVENTO_CUPONES", "c")
+    .where("c.ID_EVENTO = :idEvento", { idEvento })
+    .andWhere("UPPER(c.CODIGO) = UPPER(:codigoCupon)", {
+      codigoCupon: codigoCupon.trim(),
+    })
+    .andWhere("c.ACTIVO = 'S'")
+    .andWhere("(c.MAX_USOS IS NULL OR NVL(c.USOS, 0) < c.MAX_USOS)")
+    .getRawOne();
 }

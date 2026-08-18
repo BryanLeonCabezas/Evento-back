@@ -4,6 +4,7 @@ import { AppError } from "../../common/utils/App.error.js";
 import { PaymentezProvider } from "../payments/providers/paymentez.js";
 import {
   contarInscritos,
+  obtenerCuponValido,
   obtenerDatosInstitucion,
   obtenerEvento,
   obtenerPrecioEvento,
@@ -207,6 +208,9 @@ export class EventoUsuarioService {
               valorFinal: precioEvento,
               itemPago: evento.TITULO,
               codItem: evento.COD_ITEM,
+              cupon: null,
+              descuento: 0,
+              precioOriginal: precioEvento,
             },
           );
 
@@ -349,7 +353,7 @@ export class EventoUsuarioService {
     } catch (e) {
       console.error("Error notificando pago a la institución:", e);
     }
-   /* try {
+    /* try {
       sendCompraEmail({
         correo: resultado.extra.correo,
         nombre: resultado.extra.nombre,
@@ -525,7 +529,11 @@ export class EventoUsuarioService {
   }
 
   // ── CHECKOUT: Paso 1 — crear reference ────────────────────────────────
-  async initCheckout(idEvento: number, idUsuario: string) {
+  async initCheckout(
+    idEvento: number,
+    idUsuario: string,
+    idCupon: string | null | undefined,
+  ) {
     const manager = this.eventoUsuarioRepository.manager;
 
     const [
@@ -547,8 +555,12 @@ export class EventoUsuarioService {
     if (!evento) throw new AppError("Evento no encontrado", 404);
     if (usuarioInscrito)
       throw new AppError("El usuario ya está suscrito a este evento", 400);
-    if (Number(evento.PRECIO) === 0)
+
+    const precioOriginal = Number(evento.PRECIO);
+
+    if (precioOriginal === 0)
       throw new AppError("El evento es gratuito, usa el flujo normal", 400);
+
     if (inscritosAlEvento.INSCRITOS >= publicoEsperado.PUBLICO_ESPERADO)
       throw new AppError("El evento ha alcanzado su capacidad máxima", 400);
     if (
@@ -572,6 +584,67 @@ export class EventoUsuarioService {
       );
     }
 
+    // ==========================================
+    // VALIDACIÓN DEL CUPÓN
+    // ==========================================
+
+    let descuento = 0;
+    let precioFinal = precioOriginal;
+    let cuponAplicado = null;
+
+    if (idCupon && idCupon.trim() !== "") {
+      const cupon = await obtenerCuponValido(manager, idEvento, idCupon);
+
+      if (!cupon) {
+        throw new AppError(
+          "El cupón no es válido, está inactivo, no pertenece a este evento o ya alcanzó su límite de usos",
+          400,
+        );
+      }
+
+      const montoDescuento = Number(cupon.MONTO_DESCUENTO);
+
+      if (!Number.isFinite(montoDescuento) || montoDescuento <= 0) {
+        throw new AppError("El cupón tiene un descuento inválido", 400);
+      }
+
+      // Descuento monetario
+      if (cupon.TIPO_DESCUENTO === "M") {
+        descuento = montoDescuento;
+      }
+
+      // Descuento porcentual
+      else if (cupon.TIPO_DESCUENTO === "P") {
+        if (montoDescuento > 100) {
+          throw new AppError(
+            "El porcentaje de descuento del cupón no puede ser mayor al 100%",
+            400,
+          );
+        }
+
+        descuento = precioOriginal * (montoDescuento / 100);
+      } else {
+        throw new AppError("El tipo de descuento del cupón no es válido", 400);
+      }
+
+      // Nunca permitir que el descuento deje el precio negativo
+      descuento = Math.min(descuento, precioOriginal);
+
+      precioFinal = precioOriginal - descuento;
+
+      // Redondear a 2 decimales
+      descuento = Number(descuento.toFixed(2));
+      precioFinal = Number(precioFinal.toFixed(2));
+
+      cuponAplicado = {
+        idCupon: Number(cupon.ID_CUPON),
+        codigo: cupon.CODIGO,
+        tipoDescuento: cupon.TIPO_DESCUENTO,
+        montoDescuento: montoDescuento,
+        descuentoAplicado: descuento,
+      };
+    }
+
     const urlCodPago = institucion.URL_COD_PAGO;
     const urlProcesoPago = institucion.URL_PROCESO_PAGO;
 
@@ -582,9 +655,12 @@ export class EventoUsuarioService {
       {
         idUsuario,
         nombres: usuario.NOMBRE + " " + usuario.APELLIDO,
-        valorFinal: Number(evento.PRECIO),
+        valorFinal: precioFinal,
         itemPago: evento.TITULO,
         codItem: evento.COD_ITEM,
+        cupon: cuponAplicado,
+        precioOriginal,
+        descuento,
       },
     );
     console.log(devReference);
@@ -595,7 +671,7 @@ export class EventoUsuarioService {
       locale: "es",
       userId: idUsuario,
       userEmail: usuario.EMAIL,
-      amount: Number(evento.PRECIO),
+      amount: precioFinal,
       description: `Inscripción: ${evento.TITULO}`,
       devReference: devReference.toString(),
       vat: 0,
@@ -609,7 +685,7 @@ export class EventoUsuarioService {
         tipo: "PENDIENTE",
         estado: "PENDIENTE",
         detalleEstado: "Checkout iniciado",
-        monto: Number(evento.PRECIO),
+        monto: precioFinal,
         moneda: "USD",
         transaccionId: null,
         pasarela: "paymentez",
@@ -629,6 +705,10 @@ export class EventoUsuarioService {
       reference: result.reference,
       envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
       urlCheckout: result.checkout_url,
+      precioOriginal,
+      descuento,
+      precioFinal,
+      cupon: cuponAplicado,
     };
   }
 

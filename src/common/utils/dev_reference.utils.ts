@@ -8,12 +8,16 @@ interface DevReference {
   valorFinal: number;
   itemPago: string;
   codItem: string;
+  cupon:any;
+  precioOriginal:any,
+  descuento:any
 }
 export async function generarDevReference(
   idEvento: number,
   idUsuario: string,
   urlCodPago: string,
   data: DevReference,
+
 ): Promise<string> {
   if (!urlCodPago) {
     return `EVT-${idEvento}-USR-${idUsuario}-${Date.now()}`;
