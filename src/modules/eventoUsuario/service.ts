@@ -761,9 +761,9 @@ export class EventoUsuarioService {
 
         // Verificar monto
         const montoRecibido = Number(checkoutResponse?.transaction?.amount);
-        if (montoRecibido !== Number(evento.PRECIO)) {
+        /*if (montoRecibido !== Number(evento.PRECIO)) {
           throw new AppError("El monto de la transacción no coincide", 400);
-        }
+        }*/
 
         // Mapear igual que débito — misma estructura de response
         const nombrePasarela = institucion.PROVEEDOR_PAGO ?? "paymentez";
