@@ -65,7 +65,8 @@ export class PagosService {
       ? new Date()
       : null;
     pago.responseJson = n.responseJson ? JSON.stringify(n.responseJson) : null;
-
+    pago.idCupon = n.idCupon ?? undefined;                    
+    pago.descuentoAplicado = n.descuentoAplicado ?? 0;   
     return pago;
   }
 
