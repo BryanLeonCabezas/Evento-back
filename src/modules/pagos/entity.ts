@@ -71,4 +71,11 @@ export class Pagos {
 
   @Column("varchar2",{ name: "ORIGEN_PAGO", nullable: true })
   origenPago?: "DEBITO" | "CHECKOUT";
+
+  @Column("number", { name: "ID_CUPON", nullable: true })
+  idCupon?: number;
+
+  @Column("number", { name: "DESCUENTO_APLICADO", nullable: true })
+  descuentoAplicado?: number;
+
 }

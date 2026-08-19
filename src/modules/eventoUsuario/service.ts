@@ -3,6 +3,7 @@ import { EstadoEventoUsuario } from "../../common/enums/EstadoEventoUsuario.enum
 import { AppError } from "../../common/utils/App.error.js";
 import { PaymentezProvider } from "../payments/providers/paymentez.js";
 import {
+  consumirCupon,
   contarInscritos,
   obtenerCuponValido,
   obtenerDatosInstitucion,
@@ -694,6 +695,8 @@ export class EventoUsuarioService {
         ultimos4: null,
         responseJson: result,
         origen: "CHECKOUT",
+        idCupon: cuponAplicado?.idCupon ?? null,
+        descuentoAplicado: cuponAplicado?.descuentoAplicado ?? 0,
       },
       idEvento,
       idCliente: idUsuario,
@@ -772,6 +775,16 @@ export class EventoUsuarioService {
 
         if (pagoNormalizado.tipo === "FALLIDO") {
           throw new AppError("La transacción no fue aprobada", 400);
+        }
+
+        if (pago.idCupon) {
+          const consumido = await consumirCupon(manager, pago.idCupon);
+          if (!consumido) {
+            throw new AppError(
+              "El cupón se agotó entre la referencia y el cobro",
+              400,
+            );
+          }
         }
 
         const nuevoRegistro = manager.create(EventosUsuarios, {

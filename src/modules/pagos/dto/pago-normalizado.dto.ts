@@ -18,4 +18,6 @@ export interface PagoNormalizado {
   devReference?: string; 
   statusDetail?: number | null;
   status?: string | null;
+  idCupon?: number | null;
+  descuentoAplicado?: number | null;
 }
