@@ -239,3 +239,20 @@ export async function obtenerCuponValido(
     .andWhere("(c.MAX_USOS IS NULL OR NVL(c.USOS, 0) < c.MAX_USOS)")
     .getRawOne();
 }
+
+export async function consumirCupon(
+  manager: EntityManager,
+  idCupon: number,
+): Promise<boolean> {
+  const result: any = await manager.query(
+    `UPDATE EVENTO_CUPONES
+        SET USOS = NVL(USOS, 0) + 1
+      WHERE ID_CUPON = :1
+        AND NVL(ACTIVO, 'S') = 'S'
+        AND (MAX_USOS IS NULL OR NVL(USOS, 0) < MAX_USOS)`,
+    [idCupon],
+  );
+
+  const rowsAffected = result?.rowsAffected ?? result?.affectedRows ?? 0;
+  return rowsAffected > 0;
+}
