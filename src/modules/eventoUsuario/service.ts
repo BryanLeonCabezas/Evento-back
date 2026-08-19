@@ -680,7 +680,7 @@ export class EventoUsuarioService {
       taxable_amount: 0,
       installmentsType: 0,
     });
-
+    console.log(cuponAplicado)
     const result2 = await this.pagosService.registrarEnTransaccion(manager, {
       normalizado: {
         tipo: "PENDIENTE",
