@@ -252,7 +252,7 @@ export async function consumirCupon(
         AND (MAX_USOS IS NULL OR NVL(USOS, 0) < MAX_USOS)`,
     [idCupon],
   );
-
+  console.log("DEBUG consumirCupon result:", JSON.stringify(result));
   const rowsAffected = result?.rowsAffected ?? result?.affectedRows ?? 0;
   return rowsAffected > 0;
 }
