@@ -680,7 +680,7 @@ export class EventoUsuarioService {
       taxable_amount: 0,
       installmentsType: 0,
     });
-    console.log(cuponAplicado)
+    console.log(cuponAplicado);
     const result2 = await this.pagosService.registrarEnTransaccion(manager, {
       normalizado: {
         tipo: "PENDIENTE",
@@ -778,7 +778,11 @@ export class EventoUsuarioService {
         }
 
         if (pago.idCupon) {
-          const consumido = await consumirCupon(manager, pago.idCupon);
+          const consumido = await consumirCupon(
+            manager,
+            pago.idCupon,
+            idEvento,
+          );
           if (!consumido) {
             throw new AppError(
               "El cupón se agotó entre la referencia y el cobro",

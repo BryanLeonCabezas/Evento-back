@@ -243,16 +243,18 @@ export async function obtenerCuponValido(
 export async function consumirCupon(
   manager: EntityManager,
   idCupon: number,
+  idEvento: number,
 ): Promise<boolean> {
   const result: any = await manager.query(
     `UPDATE EVENTO_CUPONES
         SET USOS = NVL(USOS, 0) + 1
       WHERE ID_CUPON = :1
+        AND ID_EVENTO = :2
         AND NVL(ACTIVO, 'S') = 'S'
         AND (MAX_USOS IS NULL OR NVL(USOS, 0) < MAX_USOS)`,
-    [idCupon],
+    [idCupon, idEvento],
   );
-  console.log("DEBUG consumirCupon result:", JSON.stringify(result));
-  const rowsAffected = result?.rowsAffected ?? result?.affectedRows ?? 0;
+
+  const rowsAffected = typeof result === "number" ? result : 0;
   return rowsAffected > 0;
 }
