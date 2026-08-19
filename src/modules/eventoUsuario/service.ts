@@ -819,7 +819,7 @@ export class EventoUsuarioService {
           idFactura: usuario.NUMERO_ID,
           iva: evento.MONTO_IVA ?? 0,
           valorPago: Number(pago.monto),
-          valorDescuento: 0,
+          valorDescuento: Number(pago.descuentoAplicado ?? 0),
           codItem: evento.COD_ITEM,
           incluyeIva: evento.INCLUYE_IVA,
         };
