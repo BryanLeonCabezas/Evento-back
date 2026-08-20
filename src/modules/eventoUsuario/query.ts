@@ -129,9 +129,14 @@ export async function obtenerDatosInstitucion(
       "i.URL_PROCESO_PAGO         AS URL_PROCESO_PAGO",
     ])
     .from("EVENTOS", "e")
-    .innerJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
-    .innerJoin("LOCALES", "l", "l.ID_LOCAL = s.ID_LOCAL")
-    .innerJoin("INSTITUCIONES", "i", "i.ID_INSTITUCION = l.ID_INSTITUCION")
+    .leftJoin("LOCALES", "l", "l.ID_LOCAL = e.ID_LOCAL")
+    .leftJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
+    .leftJoin("LOCALES", "l2", "l2.ID_LOCAL = s.ID_LOCAL")
+    .innerJoin(
+      "INSTITUCIONES",
+      "i",
+      "i.ID_INSTITUCION = COALESCE(l.ID_INSTITUCION, l2.ID_INSTITUCION)",
+    )
     .where("e.ID_EVENTO = :idEvento", { idEvento })
     .getRawOne();
 
