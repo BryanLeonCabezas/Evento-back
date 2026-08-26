@@ -127,6 +127,7 @@ export async function obtenerDatosInstitucion(
       "i.APP_KEY_CHECKOUT       AS APP_KEY_CHECKOUT",
       "i.URL_COD_PAGO             AS URL_COD_PAGO",
       "i.URL_PROCESO_PAGO         AS URL_PROCESO_PAGO",
+      "i.PAYMENT_ENVIROMENT       AS PAYMENT_ENVIROMENT", 
     ])
     .from("EVENTOS", "e")
     .leftJoin("LOCALES", "l", "l.ID_LOCAL = e.ID_LOCAL")
