@@ -45,7 +45,7 @@ export class PagosService {
     pago.referencia =
       dto.devReference ??
       n.devReference ??
-      generarDevReference(idEvento, idCliente);
+      'connectHub-default';
 
     pago.eventoUsuario = eventoUsuario ?? null;
     pago.idEvento = idEvento;
