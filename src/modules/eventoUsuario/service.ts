@@ -703,7 +703,15 @@ export class EventoUsuarioService {
       eventoUsuario: null,
       devReference,
     });
-
+    console.log({
+      reference: result.reference,
+      envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
+      urlCheckout: result.checkout_url,
+      precioOriginal,
+      descuento,
+      precioFinal,
+      cupon: cuponAplicado,
+    });
     return {
       reference: result.reference,
       envMode: institucion.PAYMENT_ENVIROMENT ?? "stg",
