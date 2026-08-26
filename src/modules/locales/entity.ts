@@ -9,6 +9,7 @@ import {
 import { Instituciones } from "../instituciones/entity.js";
 import { Salones } from "../salones/entity.js";
 import { Archivos } from "../archivos/entity.js";
+import { Eventos } from "../evento/entity.js";
 
 @Index("SYS_C0012851", ["idLocal"], { unique: true })
 @Entity("LOCALES")
@@ -43,4 +44,7 @@ export class Locales {
 
   @OneToMany(() => Archivos, (archivo) => archivo.local)
   archivos!: Archivos[];
+
+  @OneToMany(() => Eventos, (evento) => evento.idLocal)
+  eventos?: Eventos[];
 }
