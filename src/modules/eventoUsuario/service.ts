@@ -832,7 +832,6 @@ export class EventoUsuarioService {
           incluyeIva: evento.INCLUYE_IVA,
         };
 
-        await procesarPagoInstitucion(institucion.URL_PROCESO_PAGO, payload);
 
         return {
           message: "Pago realizado e inscripción confirmada",
