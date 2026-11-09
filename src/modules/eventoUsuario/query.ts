@@ -33,7 +33,7 @@ export async function obtenerEvento(manager: EntityManager, idEvento: number) {
       "e.FECHA_EVENTO",
       "e.COD_ITEM",
       "e.MONTO_IVA",
-      "e.INCLUYE_IVA"
+      "e.INCLUYE_IVA",
     ])
     .from("EVENTOS", "e")
     .where("e.ID_EVENTO = :idEvento", { idEvento });
@@ -127,11 +127,17 @@ export async function obtenerDatosInstitucion(
       "i.APP_KEY_CHECKOUT       AS APP_KEY_CHECKOUT",
       "i.URL_COD_PAGO             AS URL_COD_PAGO",
       "i.URL_PROCESO_PAGO         AS URL_PROCESO_PAGO",
+      "i.PAYMENT_ENVIROMENT       AS PAYMENT_ENVIROMENT", 
     ])
     .from("EVENTOS", "e")
-    .innerJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
-    .innerJoin("LOCALES", "l", "l.ID_LOCAL = s.ID_LOCAL")
-    .innerJoin("INSTITUCIONES", "i", "i.ID_INSTITUCION = l.ID_INSTITUCION")
+    .leftJoin("LOCALES", "l", "l.ID_LOCAL = e.ID_LOCAL")
+    .leftJoin("SALONES", "s", "s.ID_SALON = e.ID_SALON")
+    .leftJoin("LOCALES", "l2", "l2.ID_LOCAL = s.ID_LOCAL")
+    .innerJoin(
+      "INSTITUCIONES",
+      "i",
+      "i.ID_INSTITUCION = COALESCE(l.ID_INSTITUCION, l2.ID_INSTITUCION)",
+    )
     .where("e.ID_EVENTO = :idEvento", { idEvento })
     .getRawOne();
 
@@ -211,4 +217,50 @@ export async function obtenerDatosProcesoPago(
   }
 
   return result;
+}
+
+export async function obtenerCuponValido(
+  manager: EntityManager,
+  idEvento: number,
+  codigoCupon: string,
+) {
+  return manager
+    .createQueryBuilder()
+    .select([
+      "c.ID_CUPON AS ID_CUPON",
+      "c.ID_EVENTO AS ID_EVENTO",
+      "c.CODIGO AS CODIGO",
+      "c.TIPO_DESCUENTO AS TIPO_DESCUENTO",
+      "c.MONTO_DESCUENTO AS MONTO_DESCUENTO",
+      "c.USOS AS USOS",
+      "c.MAX_USOS AS MAX_USOS",
+      "c.ACTIVO AS ACTIVO",
+    ])
+    .from("EVENTO_CUPONES", "c")
+    .where("c.ID_EVENTO = :idEvento", { idEvento })
+    .andWhere("UPPER(c.CODIGO) = UPPER(:codigoCupon)", {
+      codigoCupon: codigoCupon.trim(),
+    })
+    .andWhere("c.ACTIVO = 'S'")
+    .andWhere("(c.MAX_USOS IS NULL OR NVL(c.USOS, 0) < c.MAX_USOS)")
+    .getRawOne();
+}
+
+export async function consumirCupon(
+  manager: EntityManager,
+  idCupon: number,
+  idEvento: number,
+): Promise<boolean> {
+  const result: any = await manager.query(
+    `UPDATE EVENTO_CUPONES
+        SET USOS = NVL(USOS, 0) + 1
+      WHERE ID_CUPON = :1
+        AND ID_EVENTO = :2
+        AND NVL(ACTIVO, 'S') = 'S'
+        AND (MAX_USOS IS NULL OR NVL(USOS, 0) < MAX_USOS)`,
+    [idCupon, idEvento],
+  );
+
+  const rowsAffected = typeof result === "number" ? result : 0;
+  return rowsAffected > 0;
 }

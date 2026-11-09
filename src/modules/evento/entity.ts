@@ -13,6 +13,8 @@ import { EntradasEvento } from "../entradaEvento/entity.js";
 import { Archivos } from "../archivos/entity.js";
 import { EventoExpositores } from "../eventoExpositores/entity.js";
 import { Certificado } from "../certificados/entity.js";
+import { EventoCupones } from "../eventoCupones/entity.js";
+import { Locales } from "../locales/entity.js";
 
 @Index("SYS_C0012867", ["idEvento"], { unique: true })
 @Entity("EVENTOS")
@@ -141,4 +143,10 @@ export class Eventos {
 
   @OneToMany(() => Certificado, (certificado) => certificado.evento)
   certificados?: Certificado[];
+  @OneToMany(() => EventoCupones, (eventoCupon) => eventoCupon.evento)
+  eventoCupones?: EventoCupones[];
+
+  @ManyToOne(() => Locales, (locales) => locales.eventos)
+  @JoinColumn([{ name: "ID_LOCAL", referencedColumnName: "idLocal" }])
+  idLocal?: Locales;
 }

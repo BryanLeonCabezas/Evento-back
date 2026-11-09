@@ -22,6 +22,11 @@ router.post(
 );
 
 router.post(
+  "/register-apple",
+  asyncWrapper(authController.registerApple),
+);
+
+router.post(
   "/register-user-password",
   validateSchema(crearUsuarioSchema),
   asyncWrapper(authController.registerUserPassword),

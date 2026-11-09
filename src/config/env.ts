@@ -23,6 +23,11 @@ export const env = {
     googleClientId: process.env.GOOGLE_CLIENT_ID!,
     gooogleClientIdIOS: process.env.GOOGLE_CLIENT_ID_IOS!,
     googleClientIdAndroid: process.env.GOOGLE_CLIENT_ID_ANDROID!,
+    // Sign in with Apple: audiencia(s) permitidas = bundle id iOS (coma-separado si hay Service ID).
+    appleClientIds: (process.env.APPLE_CLIENT_IDS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   },
 
   db: {

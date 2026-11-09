@@ -8,6 +8,7 @@ import { GeneroEnum } from "../enums/Genero.enum.js";
 import { UsuarioDto } from "../../modules/auth/dtos/usuario.dto.js";
 import { AppError } from "./App.error.js";
 import { env } from "../../config/env.js";
+import { access } from "fs";
 
 const client = new OAuth2Client(env.jwt.googleClientId);
 
@@ -23,6 +24,8 @@ export const validarIdTokenGoogle = async (
   accessToken: string,
 ): Promise<UsuarioDto> => {
   let ticket;
+  console.log(env.jwt);
+  console.log(idToken, accessToken)
   try {
     ticket = await client.verifyIdToken({
       idToken,
@@ -33,6 +36,7 @@ export const validarIdTokenGoogle = async (
       ],
     });
   } catch (error: any) {
+    console.log(error)
     throw new AppError(
       "Token de Google inválido o expirado",
       401,

@@ -39,6 +39,9 @@ export class Usuarios {
   @Column("varchar2", { name: "GOOGLE_ID", nullable: true, length: 100 })
   googleId?: string | null;
 
+  @Column("varchar2", { name: "APPLE_ID", nullable: true, length: 100 })
+  appleId?: string | null;
+
   @Column("varchar2", {
     name: "TIPO_USUARIO",
     nullable: true,

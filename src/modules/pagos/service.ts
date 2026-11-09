@@ -45,7 +45,7 @@ export class PagosService {
     pago.referencia =
       dto.devReference ??
       n.devReference ??
-      generarDevReference(idEvento, idCliente);
+      'connectHub-default';
 
     pago.eventoUsuario = eventoUsuario ?? null;
     pago.idEvento = idEvento;
@@ -65,7 +65,8 @@ export class PagosService {
       ? new Date()
       : null;
     pago.responseJson = n.responseJson ? JSON.stringify(n.responseJson) : null;
-
+    pago.idCupon = n.idCupon ?? undefined;                    
+    pago.descuentoAplicado = n.descuentoAplicado ?? 0;   
     return pago;
   }
 
